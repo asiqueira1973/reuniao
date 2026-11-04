@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Versão | 0.2 (03/11/2026: respostas da seção 25) |
+| Versão | 0.3 (03/11/2026: domínio reuniao.app.br; 0.2: respostas da seção 25) |
 | Responsável de produto | Alexandre Siqueira |
 | Status | aprovado para implementação |
 | Data | 03/11/2026 |
@@ -916,7 +916,7 @@ O agente de código **para e pergunta** ao cruzar com qualquer item abaixo.
 
 | # | Pergunta | Quem decide | Até quando |
 |---|---|---|---|
-| 25.1 | ~~Nome do produto e domínio~~ **Respondida (03/11/2026):** começa em `minha-agenda.vercel.app` (e `localhost:3020` em dev). Em dev, sem domínio verificado, o remetente é o de teste do Resend (`onboarding@resend.dev`, que só entrega ao e-mail da conta Resend). **Continua aberto:** nome e domínio definitivos; a troca é só de variáveis (`NEXT_PUBLIC_SITE_URL`, `EMAIL_REMETENTE`) e do redirect no Google Cloud, sem código | Alexandre | antes de cancelar o Calendly |
+| 25.1 | ~~Nome do produto e domínio~~ **Respondida (03/11/2026):** domínio **`reuniao.app.br`** (comprado pelo Alexandre). Produção: `NEXT_PUBLIC_SITE_URL=https://reuniao.app.br`, remetente `agenda@reuniao.app.br` (domínio verificado no Resend), redirect do OAuth `https://reuniao.app.br/api/auth/google/callback`. Dev: `localhost:3020`, remetente de teste `onboarding@resend.dev`. **Continua aberto:** o nome exibido do produto (hoje "Minha Agenda", nome de trabalho) | Alexandre | antes do deploy (8.9) |
 | 25.2 | ~~Slug de cada conta~~ **Respondida:** Gmail pessoal → `alexandre`; BBZ → `alexandre-bbz`. O `seed:calendly` aceita `--slug` para gravar o endereço junto com os tipos | — | — |
 | 25.3 | ~~Contato de privacidade~~ **Respondida:** o e-mail da própria conta (`ag_contas.email`) da página que o convidado está vendo | — | — |
 

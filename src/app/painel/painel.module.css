@@ -1,0 +1,40 @@
+/* Painel provisório do épico 8.1 (seção 16). */
+.page {
+  min-height: 100dvh;
+  padding: 48px 16px;
+  background: var(--surface);
+}
+
+.card {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 160px;
+  background: var(--bg);
+  border-radius: var(--radius-card);
+  padding: 28px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.secondary {
+  margin: 0 0 4px;
+  color: var(--text-secondary);
+}
+
+.button {
+  margin-top: 20px;
+  min-height: var(--tap);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--red);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}

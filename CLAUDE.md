@@ -2,7 +2,7 @@
 
 # CLAUDE.md — Minha Agenda
 
-Fonte única de verdade: `spec.md` (v0.2). Planos aprovados: `plans/`. Princípios da seção 0 desempatam dúvidas; itens da seção 25 → **pare e pergunte**. O `DOCUMENTACAO-TECNICA.md` (a partir do fim da implementação) descreve o que está implementado; mudou schema, rota ou lógica de tela → atualize-o no mesmo commit, junto com este arquivo e o README quando couber.
+Fonte única de verdade: `spec.md` (v0.3). Planos aprovados: `plans/`. Princípios da seção 0 desempatam dúvidas; itens da seção 25 → **pare e pergunte**. O `DOCUMENTACAO-TECNICA.md` (a partir do fim da implementação) descreve o que está implementado; mudou schema, rota ou lógica de tela → atualize-o no mesmo commit, junto com este arquivo e o README quando couber.
 
 ## Regra de ouro
 Se um teste falhar, corrija o código, não o teste; nunca pule nem apague teste que falha.
@@ -24,13 +24,14 @@ Saída saudável do verify: termina com a tabela de rotas do `next build`, códi
 `npm run dev` sobe em `http://localhost:3020`.
 
 ## Pegadinhas
-- Supabase local usa as portas **554xx** (API 55421, DB 55422); 543xx e 553xx são de outros projetos.
+- Supabase local usa as portas **554xx** (API 55421, DB 55422); 543xx e 553xx são de outros projetos. Stack enxuta (sem Studio/Mailpit/storage…) porque o Docker é dividido com outros dois Supabase; não desligue o `[auth]` (o Kong depende dele).
 - Remoto compartilhado: migrations via MCP `apply_migration` (mesmo SQL do arquivo), nunca `supabase db push`; advisors filtrados a `ag_*`; regenerar `supabase/schema.sql` no mesmo commit.
 - Service role ignora RLS: toda consulta filtra por `conta_id` da sessão ou `token_hash` (seção 6).
 - Rotas do painel: `requireConta()` na primeira linha; gestão do convidado: `requireReservaPorToken()`.
 - Nunca oferecer horário se o Google falhar ou a conexão estiver `revogada` (princípio 2).
 - `fim` da reserva é sempre calculado no servidor.
 - Nunca logar e-mail, nome, observação, token ou URL `/r/…`.
+- Tipos do banco: `npm run db:types` (põe `import "server-only"` no topo); nunca `supabase gen types` direto para o arquivo.
 - Cache Components: cookies/sessão dentro de `<Suspense>`.
 - `/sair` é POST (formulário); nunca `<Link href="/sair">`.
 - Google Cloud precisa estar "Em produção" (em "Teste", o refresh token expira em 7 dias).

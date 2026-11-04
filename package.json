@@ -12,7 +12,8 @@
     "test:unit": "vitest run --passWithNoTests",
     "test": "npm run test:db && npm run test:unit",
     "verify": "npm run typecheck && npm run lint && npm test && npm run build",
-    "seed:calendly": "tsx --env-file=.env.local scripts/seed-calendly.ts"
+    "seed:calendly": "tsx --env-file=.env.local scripts/seed-calendly.ts",
+    "db:types": "node scripts/gen-db-types.mjs"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

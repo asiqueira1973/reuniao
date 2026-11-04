@@ -1,0 +1,52 @@
+/* Tela Entrar (seção 16): cartão central, título grande, botão do Google com 44 px de altura. */
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--surface);
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg);
+  border-radius: var(--radius-card);
+  padding: 40px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  color: var(--red);
+  font-size: 15px;
+}
+
+.google {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.google:hover { background: var(--surface); }
