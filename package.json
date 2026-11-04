@@ -1,0 +1,40 @@
+{
+  "name": "minha-agenda",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3020",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint",
+    "test:db": "node scripts/test-db.mjs",
+    "test:unit": "vitest run --passWithNoTests",
+    "test": "npm run test:db && npm run test:unit",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run build",
+    "seed:calendly": "tsx --env-file=.env.local scripts/seed-calendly.ts"
+  },
+  "dependencies": {
+    "@date-fns/tz": "^1.5.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "date-fns": "^4.4.0",
+    "jose": "^6.2.15",
+    "lucide-react": "^1.67.0",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "resend": "^6.37.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.1.0"
+  }
+}

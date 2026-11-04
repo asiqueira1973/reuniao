@@ -1,0 +1,172 @@
+// Minha Agenda — modelo de dados (spec.md v0.1, seção 7)
+// Projeto Supabase compartilhado: todas as tabelas com prefixo ag_.
+// RLS ligado em todas as tabelas, sem nenhuma política; sem GRANT para anon/authenticated (seção 6).
+
+enum ag_status_conexao {
+  ativa
+  revogada
+}
+
+enum ag_status_reserva {
+  processando
+  confirmada
+  cancelada_convidado
+  cancelada_dono
+  remarcada
+  falhou
+}
+
+enum ag_tipo_excecao {
+  indisponivel
+  horario_especial
+}
+
+enum ag_tipo_notificacao {
+  confirmacao_convidado
+  aviso_dono_nova
+  aviso_dono_remarcada
+  aviso_dono_cancelada
+  cancelamento_convidado
+  reconectar_google
+}
+
+enum ag_status_notificacao {
+  pendente
+  enviada
+  falhou
+}
+
+// Hard delete pelo dono, com cascata em tudo (7.4).
+// slug: ^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])$ e fora da lista reservada (regra 11.11).
+Table ag_contas {
+  id uuid [pk, default: `gen_random_uuid()`]
+  google_sub text [not null, unique]
+  email text [not null]
+  nome_exibicao text [not null]
+  slug text [not null, unique]
+  mensagem_boas_vindas text // nulo = sem mensagem; máx. 300
+  fuso text [not null, default: 'America/Sao_Paulo']
+  feriados_ativos boolean [not null, default: true]
+  feriados_desligados "text[]" [not null, default: '{}']
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  Note: 'Uma conta por e-mail Google do dono'
+}
+
+Table ag_conexoes_google {
+  conta_id uuid [pk]
+  refresh_token_cifrado text [not null] // AES-256-GCM iv.tag.cifra (regra 11.10)
+  escopos "text[]" [not null]
+  status ag_status_conexao [not null, default: 'ativa']
+  revogada_em timestamptz // nulo enquanto ativa
+  aviso_reconectar_enviado boolean [not null, default: false]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  Note: 'Segredo da conexão Google; nunca sai do servidor'
+}
+
+// Soft delete (excluido_em). Unique parcial (conta_id, slug) where excluido_em is null.
+// checks: duracao_min 15–240 múltiplo de 5; antecedencia_min 0–10080; janela_dias 1–365;
+// intervalo_antes_min/intervalo_depois_min 0–120; passo_min em (10,15,20,30,45,60,90,120).
+Table ag_tipos_evento {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null]
+  nome text [not null]
+  slug text [not null]
+  descricao text // nulo = sem descrição; máx. 1.000
+  duracao_min integer [not null, default: 30]
+  com_meet boolean [not null, default: true]
+  antecedencia_min integer [not null, default: 240]
+  janela_dias integer [not null, default: 60]
+  intervalo_antes_min integer [not null, default: 0]
+  intervalo_depois_min integer [not null, default: 0]
+  passo_min integer [not null, default: 30]
+  visivel_na_pagina boolean [not null, default: true]
+  ativo boolean [not null, default: true]
+  ordem integer [not null, default: 0]
+  excluido_em timestamptz // nulo = não excluído
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (conta_id, slug) [unique, name: 'ag_tipos_evento_slug_uk', note: 'parcial: where excluido_em is null']
+  }
+}
+
+// Hard delete. check fim > inicio; sobreposição barrada por ag_fn_valida_faixas.
+Table ag_horarios_semanais {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null]
+  dia_semana smallint [not null] // 0 = domingo … 6 = sábado
+  inicio time [not null]
+  fim time [not null]
+}
+
+// Hard delete. check ag_excecoes_data_tipo_ck: indisponivel ⇔ inicio/fim nulos.
+Table ag_excecoes_data {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null]
+  data date [not null]
+  tipo ag_tipo_excecao [not null]
+  inicio time // nulo se tipo = indisponivel
+  fim time // idem
+}
+
+// Nunca apagadas; anonimizadas após 24 meses (regra 11.12).
+// EXCLUDE USING gist (conta_id WITH =, tstzrange(inicio, fim, '[)') WITH &&)
+//   WHERE (status IN ('processando','confirmada'))  -- ag_reservas_sem_sobreposicao (btree_gist)
+// check fim > inicio.
+Table ag_reservas {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null]
+  tipo_evento_id uuid [not null]
+  inicio timestamptz [not null]
+  fim timestamptz [not null]
+  nome_convidado text [not null]
+  email_convidado text [not null]
+  observacao text // nulo = convidado não escreveu
+  fuso_convidado text [not null]
+  status ag_status_reserva [not null, default: 'processando']
+  google_evento_id text // nulo enquanto processando ou se falhou
+  link_meet text // nulo sem Meet ou antes de confirmar
+  token_hash text [not null, unique]
+  remarcada_de_id uuid // nulo = reserva original
+  motivo_cancelamento text
+  cancelada_em timestamptz
+  dados_anonimizados_em timestamptz
+  criado_em timestamptz [not null, default: `now()`]
+  atualizado_em timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (conta_id, inicio)
+    (email_convidado, conta_id)
+  }
+}
+
+Table ag_notificacoes {
+  id uuid [pk, default: `gen_random_uuid()`]
+  conta_id uuid [not null]
+  reserva_id uuid // nulo só em reconectar_google
+  tipo ag_tipo_notificacao [not null]
+  status ag_status_notificacao [not null, default: 'pendente']
+  tentativas smallint [not null, default: 0]
+  resend_id text
+  erro text
+  criado_em timestamptz [not null, default: `now()`]
+  enviada_em timestamptz
+
+  Indexes {
+    (reserva_id, tipo) [unique, name: 'ag_notificacoes_uk']
+  }
+}
+
+Ref: ag_conexoes_google.conta_id - ag_contas.id [delete: cascade]
+Ref: ag_tipos_evento.conta_id > ag_contas.id [delete: cascade]
+Ref: ag_horarios_semanais.conta_id > ag_contas.id [delete: cascade]
+Ref: ag_excecoes_data.conta_id > ag_contas.id [delete: cascade]
+Ref: ag_reservas.conta_id > ag_contas.id [delete: cascade]
+Ref: ag_reservas.tipo_evento_id > ag_tipos_evento.id [delete: restrict]
+Ref: ag_reservas.remarcada_de_id > ag_reservas.id
+Ref: ag_notificacoes.conta_id > ag_contas.id [delete: cascade]
+Ref: ag_notificacoes.reserva_id > ag_reservas.id [delete: cascade]
