@@ -13,14 +13,14 @@ vi.mock("@/server/google/calendar", async (importOriginal) => {
 });
 vi.mock("@/server/google/events", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/server/google/events")>();
-  return { ...original, insertEvent: vi.fn() };
+  return { ...original, insertEvent: vi.fn(), patchEvent: vi.fn() };
 });
 vi.mock("@/server/email/resend", () => ({ sendEmail: vi.fn() }));
 
 const calendar = await import("@/server/google/calendar");
 const events = await import("@/server/google/events");
 const resend = await import("@/server/email/resend");
-const { BookingError, createBooking } = await import("./booking");
+const { BookingError, createBooking, resendBookingEmails } = await import("./booking");
 const { notifyReservation } = await import("./notifications");
 const { getAvailability } = await import("./availability");
 const { POST } = await import("@/app/api/reservas/route");
@@ -166,6 +166,38 @@ describe("notifyReservation — idempotência (regra 11.6)", () => {
     const delivery = { to: "x@teste.dev", fromName: "Dono", email: { subject: "s", html: "h", text: "t" } };
     expect(await notifyReservation(conta.id, r.id, "confirmacao_convidado", delivery)).toBe("ignorada");
     expect(resend.sendEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe("resendBookingEmails (reenvio com link novo, aprovado 05/11/2026)", () => {
+  it("troca o token, atualiza a descrição do evento e reenvia só o que falhou", async () => {
+    vi.mocked(resend.sendEmail).mockRejectedValueOnce(new Error("resend_403")).mockResolvedValue("ok");
+    const r = await book();
+    vi.mocked(resend.sendEmail).mockClear();
+    const { data: before } = await db().from("ag_reservas").select("token_hash").eq("id", r.id).single();
+
+    const result = await resendBookingEmails(r.id);
+    const { data: after } = await db().from("ag_reservas").select("token_hash").eq("id", r.id).single();
+    expect(after!.token_hash).not.toBe(before!.token_hash);
+
+    const [, eventId, patch] = vi.mocked(events.patchEvent).mock.calls[0];
+    expect(eventId).toBe(events.eventIdFor(r.id));
+    expect(patch).toMatchObject({ start: SLOT, end: "2026-11-09T14:30:00.000Z" });
+    const newToken = /\/r\/([A-Za-z0-9_-]+)/.exec(patch.description!)![1];
+    expect(newToken).not.toBe(r.token);
+    expect(createHash("sha256").update(newToken).digest("hex")).toBe(after!.token_hash);
+
+    // Uma das duas falhou no primeiro envio: só ela sai de novo, já com o link novo.
+    expect(Object.values(result).sort()).toEqual(["enviada", "ignorada"]);
+    expect(resend.sendEmail).toHaveBeenCalledTimes(1);
+    const resent = vi.mocked(resend.sendEmail).mock.calls[0][0];
+    if (resent.to === "ana@teste.dev") expect(resent.text).toContain(`/r/${newToken}`);
+  });
+  it("reserva que não está confirmada → nao_encontrado", async () => {
+    vi.mocked(events.insertEvent).mockRejectedValue(new calendar.CalendarError("servico_indisponivel"));
+    await expect(book()).rejects.toBeInstanceOf(BookingError);
+    const { data } = await db().from("ag_reservas").select("id").eq("conta_id", conta.id).single();
+    await expect(resendBookingEmails(data!.id)).rejects.toMatchObject({ code: "nao_encontrado" });
   });
 });
 

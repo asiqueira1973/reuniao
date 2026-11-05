@@ -18,7 +18,8 @@ async function deliver(notification: { id: string; tentativas: number; status: s
   if (notification.status === "enviada" || notification.tentativas >= MAX_ATTEMPTS) return "ignorada";
   const attempts = notification.tentativas + 1;
   try {
-    const resendId = await sendEmail({ fromName: d.fromName, to: d.to, replyTo: d.replyTo, ...d.email, idempotencyKey: notification.id });
+    // Chave por tentativa: o Resend não deve devolver a resposta guardada de uma tentativa que falhou.
+    const resendId = await sendEmail({ fromName: d.fromName, to: d.to, replyTo: d.replyTo, ...d.email, idempotencyKey: `${notification.id}:${attempts}` });
     await db().from("ag_notificacoes").update({ status: "enviada", tentativas: attempts, resend_id: resendId, erro: null, enviada_em: new Date().toISOString() }).eq("id", notification.id);
     return "enviada";
   } catch (err) {

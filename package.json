@@ -13,7 +13,8 @@
     "test": "npm run test:db && npm run test:unit",
     "verify": "npm run typecheck && npm run lint && npm test && npm run build",
     "seed:calendly": "tsx --env-file=.env.local scripts/seed-calendly.ts",
-    "db:types": "node scripts/gen-db-types.mjs"
+    "db:types": "node scripts/gen-db-types.mjs",
+    "resend:booking": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/resend-booking-emails.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

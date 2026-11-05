@@ -10,8 +10,9 @@ import { AvailabilityLookupError, getAvailability } from "@/server/availability"
 import { db } from "@/server/db/client";
 import { getPublicAccount } from "@/server/db/public";
 import { CalendarError } from "@/server/google/calendar";
-import { insertEvent } from "@/server/google/events";
-import { notifyBookingConfirmed } from "@/server/notifications";
+import { insertEvent, patchEvent } from "@/server/google/events";
+import { confirmationToGuest, newBookingToOwner } from "@/server/email/templates";
+import { notifyBookingConfirmed, notifyReservation } from "@/server/notifications";
 
 export const MAX_FUTURE_BOOKINGS_PER_EMAIL = 3;
 
@@ -166,4 +167,53 @@ export async function createBooking(input: BookingInput, now = new Date()): Prom
   });
 
   return { id: reserva.id, inicio: startIso, fim: end, link_meet: created.meetLink, token };
+}
+
+// Reenvia os e-mails de uma reserva confirmada que falharam (regra 11.6), com link de gestão novo.
+// O banco só guarda o hash do token (11.7), então não há como reenviar o link antigo: gera um token
+// novo, troca o hash, atualiza o link na descrição do evento do Google e reenvia as notificações
+// que não estão 'enviada' (aprovado pelo Alexandre em 05/11/2026). O link antigo deixa de valer.
+// Devolve o resultado de cada notificação.
+export async function resendBookingEmails(reservaId: string): Promise<Record<string, string>> {
+  const { data: r, error } = await db()
+    .from("ag_reservas")
+    .select("id, conta_id, inicio, fim, nome_convidado, email_convidado, observacao, fuso_convidado, google_evento_id, link_meet, status, ag_tipos_evento(nome), ag_contas(email, nome_exibicao, fuso)")
+    .eq("id", reservaId)
+    .single();
+  if (error) throw error;
+  if (r.status !== "confirmada" || !r.google_evento_id || !r.ag_contas || !r.ag_tipos_evento) throw new BookingError("nao_encontrado");
+
+  const { token, hash } = newManageToken();
+  const { error: e1 } = await db().from("ag_reservas").update({ token_hash: hash }).eq("id", r.id);
+  if (e1) throw e1;
+  await patchEvent(r.conta_id, r.google_evento_id, {
+    start: new Date(r.inicio).toISOString(),
+    end: new Date(r.fim).toISOString(),
+    description: eventDescription(r.nome_convidado, r.email_convidado, r.observacao, token),
+  });
+
+  const data = {
+    contaId: r.conta_id,
+    reservaId: r.id,
+    ownerName: r.ag_contas.nome_exibicao,
+    ownerEmail: r.ag_contas.email,
+    ownerTimeZone: r.ag_contas.fuso,
+    typeName: r.ag_tipos_evento.nome,
+    guestName: r.nome_convidado,
+    guestEmail: r.email_convidado,
+    guestTimeZone: r.fuso_convidado,
+    notes: r.observacao,
+    start: new Date(r.inicio).toISOString(),
+    meetLink: r.link_meet,
+    manageUrl: manageUrl(token),
+  };
+  const [guest, owner] = await Promise.all([
+    notifyReservation(r.conta_id, r.id, "confirmacao_convidado", {
+      to: data.guestEmail, replyTo: data.ownerEmail, fromName: data.ownerName, email: confirmationToGuest(data),
+    }),
+    notifyReservation(r.conta_id, r.id, "aviso_dono_nova", {
+      to: data.ownerEmail, replyTo: data.guestEmail, fromName: data.ownerName, email: newBookingToOwner(data),
+    }),
+  ]);
+  return { confirmacao_convidado: guest, aviso_dono_nova: owner };
 }
