@@ -3,7 +3,7 @@
 // no fuso dele (fuso_convidado) e as do dono no fuso da conta (regra 11.1).
 import "server-only";
 import { copy } from "@/lib/copy";
-import { formatDateTimeLong, formatDateTimeShort, timeZoneName } from "@/lib/format";
+import { formatDateTimeLong, formatSubjectGuest, formatSubjectOwner, timeZoneName } from "@/lib/format";
 
 const e = copy.emails;
 
@@ -58,7 +58,7 @@ type BookingData = {
 // de remarcar/cancelar (/r/{token}) — regra 11.6.
 export function confirmationToGuest(d: BookingData): RenderedEmail {
   const when = `${formatDateTimeLong(d.start, d.guestTimeZone)} (${timeZoneName(d.guestTimeZone)})`;
-  const subject = fill(e.subjects.confirmacao_convidado, { tipo: d.typeName, dono: d.ownerName, quando: formatDateTimeShort(d.start, d.guestTimeZone) });
+  const subject = fill(e.subjects.confirmacao_convidado, { tipo: d.typeName, dono: d.ownerName, quando: formatSubjectGuest(d.start, d.guestTimeZone) });
   const title = fill(e.confirmationIntro, { dono: d.ownerName });
   const rows: [string, string][] = [[e.type, d.typeName], [e.when, when]];
   if (d.meetLink) rows.push([copy.booking.meet, d.meetLink]);
@@ -72,7 +72,7 @@ export function confirmationToGuest(d: BookingData): RenderedEmail {
 // Aviso para o dono de reserva nova: convidado, e-mail, tipo, data/hora no fuso da conta, observação.
 export function newBookingToOwner(d: BookingData): RenderedEmail {
   const when = formatDateTimeLong(d.start, d.ownerTimeZone);
-  const subject = fill(e.subjects.aviso_dono_nova, { convidado: d.guestName, quando: formatDateTimeShort(d.start, d.ownerTimeZone) });
+  const subject = fill(e.subjects.aviso_dono_nova, { convidado: d.guestName, quando: formatSubjectOwner(d.start, d.ownerTimeZone) });
   const title = fill(e.ownerIntro, { convidado: d.guestName });
   const rows: [string, string][] = [[e.guest, `${d.guestName} (${d.guestEmail})`], [e.type, d.typeName], [e.when, when]];
   if (d.notes) rows.push([e.guestNotes, d.notes]);

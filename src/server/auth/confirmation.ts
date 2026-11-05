@@ -10,7 +10,9 @@ const MAX_AGE_S = 30 * 60;
 
 // Chave derivada do SESSION_SECRET (mesmo segredo da sessão do dono, outra finalidade).
 function key(): Uint8Array {
-  return new TextEncoder().encode(`${process.env.SESSION_SECRET ?? ""}:confirmacao`);
+  const secret = process.env.SESSION_SECRET;
+  if (!secret || secret.length < 32) throw new Error("SESSION_SECRET ausente ou curto (mín. 32 caracteres)");
+  return new TextEncoder().encode(`${secret}:confirmacao`);
 }
 
 // Assina o cookie para uma reserva.
@@ -21,8 +23,9 @@ export async function signConfirmation(reservaId: string): Promise<string> {
 // Diz se o cookie vale para a reserva indicada.
 export async function confirmationMatches(cookie: string | undefined, reservaId: string): Promise<boolean> {
   if (!cookie) return false;
+  const k = key();
   try {
-    const { payload } = await jwtVerify(cookie, key(), { algorithms: ["HS256"] });
+    const { payload } = await jwtVerify(cookie, k, { algorithms: ["HS256"] });
     return payload.r === reservaId;
   } catch {
     return false;

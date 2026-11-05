@@ -95,3 +95,21 @@ export async function getConfirmedReservation(reservaId: string) {
   if (error) throw error;
   return data;
 }
+
+// Diz se o endereço público existe: conta pelo slug e, se vier, tipo não excluído da conta.
+// Usado pelo proxy para responder 404 de verdade antes do streaming (critério 8.5).
+export async function publicPathExists(accountSlug: string, typeSlug?: string): Promise<boolean> {
+  const { data: conta, error } = await db().from("ag_contas").select("id").eq("slug", accountSlug).maybeSingle();
+  if (error) throw error;
+  if (!conta) return false;
+  if (!typeSlug) return true;
+  const { data: tipo, error: e2 } = await db()
+    .from("ag_tipos_evento")
+    .select("id")
+    .eq("conta_id", conta.id)
+    .eq("slug", typeSlug)
+    .is("excluido_em", null)
+    .maybeSingle();
+  if (e2) throw e2;
+  return !!tipo;
+}

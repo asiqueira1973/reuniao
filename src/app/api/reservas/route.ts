@@ -1,6 +1,6 @@
 // POST /api/reservas — o convidado marca uma reunião (seção 13, épico 8.5). Público.
 // Entrada { conta, tipo, inicio, nome, email, observacao?, fuso, site }: qualquer outro campo é
-// recusado; o fim é calculado no servidor. Respostas: 201 { id, inicio, fim, link_meet } + cookie
+// ignorado (critério 8.5); o fim é calculado no servidor. Respostas: 201 { id, inicio, fim, link_meet } + cookie
 // curto da tela de confirmado; 404 nao_encontrado/tipo_indisponivel; 409 horario_indisponivel;
 // 422 dados_invalidos; 429 limite_excedido; 503 servico_indisponivel/agenda_indisponivel.
 import { NextResponse, type NextRequest } from "next/server";
@@ -29,8 +29,7 @@ const bodySchema = z
     observacao: z.string().max(1000).nullable().optional(),
     fuso: z.string().max(64).refine(isTimeZone),
     site: z.string().max(200).optional(),
-  })
-  .strict();
+  });
 
 const STATUS: Record<BookingError["code"], number> = {
   nao_encontrado: 404,

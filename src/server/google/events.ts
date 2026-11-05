@@ -72,19 +72,24 @@ export async function insertEvent(contaId: string, input: EventInput, pollDelayM
     method: "POST",
     body: JSON.stringify(body),
   });
-  let event: GoogleEvent;
-  if (res.status === 409) event = await getEvent(contaId, eventId);
-  else if (!res.ok) throw new CalendarError("servico_indisponivel");
-  else event = await res.json();
+  if (res.status !== 409 && !res.ok) throw new CalendarError("servico_indisponivel");
 
-  let meetLink = event.hangoutLink ?? null;
-  for (let i = 0; input.withMeet && !meetLink && i < 3; i++) {
-    if (event.conferenceData?.createRequest?.status?.statusCode !== "pending") break;
-    await sleep(pollDelayMs);
-    event = await getEvent(contaId, eventId);
-    meetLink = event.hangoutLink ?? null;
+  // Daqui em diante o evento existe no Google (convite já enviado): nenhuma falha vira erro.
+  // Sem conseguir ler o Meet, a reserva confirma sem link (regra 11.5) e isso fica no log.
+  let event: GoogleEvent | null = null;
+  try {
+    event = res.status === 409 ? await getEvent(contaId, eventId) : await res.json();
+    for (let i = 0; input.withMeet && event && !event.hangoutLink && i < 3; i++) {
+      if (event.conferenceData?.createRequest?.status?.statusCode !== "pending") break;
+      await sleep(pollDelayMs);
+      event = await getEvent(contaId, eventId);
+    }
+  } catch {
+    // Mantém o que já se sabe (o id é derivado da reserva).
   }
-  return { eventId: event.id, meetLink };
+  const meetLink = event?.hangoutLink ?? null;
+  if (input.withMeet && !meetLink) console.warn("evento_sem_meet", eventId);
+  return { eventId: event?.id ?? eventId, meetLink };
 }
 
 // Muda o horário (e, se vier, a descrição) do evento — remarcação (seção 12, épico 8.6).

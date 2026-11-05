@@ -62,3 +62,14 @@ export function timeZoneName(timeZone: string): string {
     .find((p) => p.type === "timeZoneName");
   return part?.value ?? timeZone;
 }
+
+// Assunto ao convidado (seção 15, "{dia, dd/mm às hh:mm}"): "seg., 09/11 às 13:30".
+export function formatSubjectGuest(iso: string, timeZone: string): string {
+  const weekday = new Intl.DateTimeFormat("pt-BR", { weekday: "short", timeZone }).format(new Date(iso));
+  return `${weekday}, ${formatDateTimeShort(iso, timeZone)}`;
+}
+
+// Assunto ao dono (seção 15, "{dd/mm hh:mm}"): "09/11 10:30".
+export function formatSubjectOwner(iso: string, timeZone: string): string {
+  return formatDateTimeShort(iso, timeZone).replace(" às ", " ");
+}

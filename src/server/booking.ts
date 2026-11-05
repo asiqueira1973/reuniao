@@ -132,10 +132,21 @@ export async function createBooking(input: BookingInput, now = new Date()): Prom
     throw e;
   }
 
-  await db()
-    .from("ag_reservas")
-    .update({ status: "confirmada", google_evento_id: created.eventId, link_meet: created.meetLink })
-    .eq("id", reserva.id);
+  // processando → confirmada. O evento já existe no Google: tenta de novo antes de desistir, para
+  // a reserva não ficar presa em 'processando' (a faxina a soltaria com o convite já enviado).
+  let confirmError: unknown = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error: e } = await db()
+      .from("ag_reservas")
+      .update({ status: "confirmada", google_evento_id: created.eventId, link_meet: created.meetLink })
+      .eq("id", reserva.id);
+    confirmError = e;
+    if (!e) break;
+  }
+  if (confirmError) {
+    console.error("reserva_nao_confirmada", reserva.id);
+    throw confirmError;
+  }
 
   const { data: owner } = await db().from("ag_contas").select("email").eq("id", conta.id).single();
   await notifyBookingConfirmed({

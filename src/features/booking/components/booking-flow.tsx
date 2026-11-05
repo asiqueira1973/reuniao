@@ -167,12 +167,13 @@ export function BookingFlow(p: Props) {
         site: String(data.get("site") ?? ""),
       }),
     }).catch(() => null);
-    setSending(false);
     if (res?.status === 201) {
+      // Continua "enviando" até a navegação, para um segundo clique não reenviar.
       const { id } = (await res.json()) as { id: string };
       router.push(`/${p.accountSlug}/${p.typeSlug}/confirmado?r=${id}`);
       return;
     }
+    setSending(false);
     const code = res ? (await res.json().catch(() => ({}))).erro : null;
     if (code === "horario_indisponivel") {
       setStep("pick");
