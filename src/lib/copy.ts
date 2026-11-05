@@ -1,6 +1,6 @@
 // Textos oficiais do produto — seção 15 (conteúdo final, pt-BR). Nenhum texto de interface fora daqui.
 // Rótulos de navegação e de campos vêm das seções 10 e 16 e do prompt de design. Textos fora da
-// seção 15 aprovados pelo Alexandre em 04/11/2026 (8.2) ou marcados "a aprovar" (épicos seguintes).
+// seção 15 aprovados pelo Alexandre em 04/11/2026 (8.2 e 8.3) ou marcados "a aprovar" (épicos seguintes).
 
 export const copy = {
   appName: "Reunião",
@@ -92,7 +92,6 @@ export const copy = {
       unavailable: "Indisponível",
       overlap: "Esses horários se sobrepõem.",
       copyTo: "Copiar para…",
-      // a aprovar (8.3)
       addRange: "Adicionar faixa",
       removeRange: "Remover faixa",
       apply: "Aplicar",
@@ -100,7 +99,6 @@ export const copy = {
       end: "Fim",
       invalid: "Confira os horários: o fim precisa ser depois do início.",
     },
-    // a aprovar (8.3)
     days: {
       short: ["D", "S", "T", "Q", "Q", "S", "S"],
       long: ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"],
@@ -109,7 +107,6 @@ export const copy = {
       title: "Datas específicas",
       add: "Adicionar data",
       unavailableAllDay: "Indisponível o dia todo",
-      // a aprovar (8.3)
       customHours: "Horários próprios",
       date: "Data",
       empty: "Nenhuma data específica.",
@@ -120,7 +117,6 @@ export const copy = {
     holidays: {
       title: "Feriados",
       country: "Brasil",
-      // a aprovar (8.3)
       next: "Próximo:",
     },
   },
@@ -130,7 +126,7 @@ export const copy = {
     dados_invalidos: "Confira os campos destacados.",
     generic: "Não consegui salvar agora. Tente de novo em instantes.",
     faixa_sobreposta: "Esses horários se sobrepõem.",
-    excecao_conflitante: "Esses horários se sobrepõem.", // a aprovar (8.3)
+    excecao_conflitante: "Esses horários se sobrepõem.",
   },
 } as const;
 
