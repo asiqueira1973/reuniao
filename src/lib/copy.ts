@@ -239,6 +239,32 @@ export const copy = {
     bookAgain: "Marcar outro horário",
     lostReschedule: "Falha ao remarcar: o horário antigo foi ocupado por outra reserva e o novo não pôde ser confirmado no Google.",
   },
+  account: {
+    // Seção 15: changeSlug e reconnectBanner/reconnectButton. O resto: a aprovar (8.8).
+    title: "Conta",
+    groups: { profile: "Perfil", google: "Google Agenda", danger: "Excluir conta" },
+    fields: {
+      nome_exibicao: "Nome de exibição",
+      slug: "Endereço",
+      mensagem_boas_vindas: "Mensagem de boas-vindas",
+      mensagemHint: "Aparece na sua página pública, acima dos tipos de reunião.",
+      fuso: "Fuso horário",
+    },
+    slugAvailable: "Endereço disponível.",
+    changeSlug: "Links antigos deixam de funcionar. Continuar?",
+    changeSlugConfirm: "Continuar",
+    cancel: "Cancelar",
+    save: "Salvar",
+    saved: "Salvo.",
+    googleCalendar: "Consultando sua agenda principal",
+    connection: { ativa: "Conectada", revogada: "Desconectada", ausente: "Não conectada" },
+    reconnect: "Reconectar",
+    reconnectBanner: "Sua agenda do Google foi desconectada. Ninguém consegue marcar até você reconectar.",
+    reconnectButton: "Reconectar Google",
+    deleteIntro: "Apaga sua conta, seus tipos de reunião, horários e o histórico de reuniões. Os eventos já criados no seu Google Agenda continuam lá.",
+    deleteTypeSlug: (slug: string) => `Para confirmar, digite ${slug}`,
+    deleteButton: "Excluir conta",
+  },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",
     slug_invalido: "Use de 3 a 30 letras minúsculas, números ou hífen.",
@@ -253,6 +279,8 @@ export const copy = {
     reuniao_iniciada: "Esta reunião já aconteceu ou está acontecendo.",
     transicao_invalida: "Esta reunião não pode mais ser alterada.", // a aprovar (8.6)
     limite_tentativas: "Este e-mail já foi tentado 5 vezes.", // a aprovar (8.7)
+    slug_reservado: "Esse endereço é reservado. Escolha outro.", // a aprovar (8.8)
+    confirmacao_invalida: "O endereço digitado não confere.", // a aprovar (8.8)
   },
 } as const;
 

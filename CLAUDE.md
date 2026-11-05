@@ -36,4 +36,5 @@ Saída saudável do verify: termina com a tabela de rotas do `next build`, códi
 - `/sair` é POST (formulário); nunca `<Link href="/sair">`.
 - Google Cloud precisa estar "Em produção" (em "Teste", o refresh token expira em 7 dias).
 - `next dev` às vezes fica com módulo velho depois de muitas edições (erro mostra código antigo): reinicie o servidor antes de caçar bug.
+- `copy.ts`: `  errors: {` aparece também dentro de `login`; ao inserir bloco por script, ancore num texto único (ex.: `errors: {\n    slug_em_uso`).
 - Quando o agente errar a mesma coisa duas vezes, a correção entra aqui.

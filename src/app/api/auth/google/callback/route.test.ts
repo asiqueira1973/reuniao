@@ -129,4 +129,16 @@ describe("GET /api/auth/google/callback (épico 8.1)", () => {
     const { count } = await db().from("ag_tipos_evento").select("id", { count: "exact", head: true }).eq("conta_id", contas[0].id);
     expect(count).toBe(1);
   });
+
+  it("reconectar (critério 8.8): conexão revogada volta a ativa e libera um novo aviso", async () => {
+    const sub = `sub-${randomUUID()}`;
+    mockGoogle({ sub });
+    await GET(callback());
+    const [conta] = await accountBySub(sub);
+    await db().from("ag_conexoes_google").update({ status: "revogada", revogada_em: new Date().toISOString(), aviso_reconectar_enviado: true }).eq("conta_id", conta.id);
+    mockGoogle({ sub, refreshToken: "1//reconectado" });
+    await GET(callback());
+    const { data } = await db().from("ag_conexoes_google").select("status, revogada_em, aviso_reconectar_enviado").eq("conta_id", conta.id).single();
+    expect(data).toEqual({ status: "ativa", revogada_em: null, aviso_reconectar_enviado: false });
+  });
 });

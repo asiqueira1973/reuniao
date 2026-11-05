@@ -9,7 +9,7 @@ export function apiError(code: string, status: number): Response {
 }
 
 // Códigos de negócio que um schema pode marcar como mensagem do erro (ex.: faixa_sobreposta).
-const ISSUE_CODES = new Set(["faixa_sobreposta"]);
+const ISSUE_CODES = new Set(["faixa_sobreposta", "slug_reservado"]);
 
 // Lê o corpo JSON e valida com o schema. Devolve os dados ou uma Response 422 com o código de
 // negócio marcado pelo schema, ou dados_invalidos (corpo que não é JSON também é dados_invalidos).

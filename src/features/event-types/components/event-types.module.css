@@ -127,3 +127,7 @@
 .confirmBox { padding: 16px; border-radius: 16px; background: color-mix(in srgb, var(--red) 8%, transparent); display: flex; flex-direction: column; gap: 12px; }
 .confirmBox p { margin: 0; }
 .backLink { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; margin-bottom: 8px; }
+
+/* Tela Conta (8.8): texto de erro/alerta e link com cara de botão (Reconectar). */
+.errorText { color: var(--red); }
+.linkButton { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 20px; border: 1px solid var(--hairline); border-radius: 999px; background: var(--bg); color: var(--text); font-size: 15px; font-weight: 600; text-decoration: none; }
