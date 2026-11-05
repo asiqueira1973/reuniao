@@ -183,3 +183,21 @@
 /* Itens de grid não podem crescer pelo conteúdo (nomes de fuso longos no seletor). */
 .layout > *, .pickerColumns > * { min-width: 0; }
 .tzSelect { width: 100%; }
+
+/* Gestão (8.6) */
+.secondary {
+  width: 100%;
+  min-height: var(--tap);
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--red);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.danger { background: var(--red); }
+.manageDetails { margin: 0 0 24px; display: flex; flex-direction: column; gap: 6px; font-size: 16px; }
+.manageDetails span::first-letter { text-transform: uppercase; }
+.manageTitle { margin: 0 0 16px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; text-align: center; }

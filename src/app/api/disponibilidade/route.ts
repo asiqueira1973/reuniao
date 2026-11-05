@@ -8,6 +8,7 @@ import { z } from "zod";
 import { addDays } from "@/features/availability/holidays";
 import { AvailabilityLookupError, getAvailability } from "@/server/availability";
 import { CalendarError } from "@/server/google/calendar";
+import { requireReservaPorToken } from "@/server/auth/require-reserva";
 import { getPublicAccount } from "@/server/db/public";
 import { apiError, runAfterResponse } from "@/server/http";
 import { ensureReconnectNotice } from "@/server/notifications";
@@ -20,6 +21,8 @@ const querySchema = z
     tipo: z.string().min(1).max(30),
     de: z.iso.date(),
     ate: z.iso.date(),
+    // Remarcação (8.6): token da reserva que está mudando; o horário dela conta como livre.
+    remarcar: z.string().max(100).optional(),
   })
   .refine((q) => q.de <= q.ate && q.ate < addDays(q.de, MAX_SPAN_DAYS));
 
@@ -29,7 +32,15 @@ export async function GET(req: NextRequest) {
   if (!parsed.success) return apiError("dados_invalidos", 422);
   const q = parsed.data;
   try {
-    const { fuso_conta, dias } = await getAvailability({ accountSlug: q.conta, typeSlug: q.tipo, from: q.de, to: q.ate });
+    let ignore: { inicio: string; fim: string } | undefined;
+    if (q.remarcar) {
+      const r = await requireReservaPorToken(q.remarcar);
+      // Só ignora a própria reunião se ela for desta conta e deste tipo e ainda estiver confirmada.
+      if (r && r.status === "confirmada" && r.ag_contas!.slug === q.conta && r.ag_tipos_evento!.slug === q.tipo) {
+        ignore = { inicio: new Date(r.inicio).toISOString(), fim: new Date(r.fim).toISOString() };
+      }
+    }
+    const { fuso_conta, dias } = await getAvailability({ accountSlug: q.conta, typeSlug: q.tipo, from: q.de, to: q.ate, ignore });
     return Response.json({ fuso_conta, dias }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
     if (e instanceof AvailabilityLookupError) {

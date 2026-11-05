@@ -90,3 +90,40 @@ export function reconnectToOwner(siteUrl: string): RenderedEmail {
     text: `${e.reconnectBody}\n\n${e.reconnectButton}: ${url}`,
   };
 }
+
+type ChangeData = {
+  ownerName: string;
+  typeName: string;
+  guestName: string;
+  guestEmail: string;
+  ownerTimeZone: string;
+  start: string;
+  reason: string | null;
+};
+
+// Aviso ao dono de cancelamento pelo convidado (regra 11.6): convidado, horário (fuso da conta), motivo.
+export function cancelledToOwner(d: ChangeData): RenderedEmail {
+  const subject = fill(e.subjects.aviso_dono_cancelada, { convidado: d.guestName, quando: formatSubjectOwner(d.start, d.ownerTimeZone) });
+  const title = fill(e.cancelledByGuestIntro, { convidado: d.guestName });
+  const rows: [string, string][] = [[e.guest, `${d.guestName} (${d.guestEmail})`], [e.type, d.typeName], [e.when, formatDateTimeLong(d.start, d.ownerTimeZone)]];
+  if (d.reason) rows.push([e.reason, d.reason]);
+  return { subject, html: layout(title, rows, "", copy.appName), text: [title, "", ...rows.map(([k, v]) => `${k}: ${v}`)].join("\n") };
+}
+
+// Aviso ao dono de remarcação (regra 11.6): horário antigo → novo, no fuso da conta.
+export function rescheduledToOwner(d: ChangeData & { previousStart: string; meetLink: string | null }): RenderedEmail {
+  const subject = fill(e.subjects.aviso_dono_remarcada, {
+    convidado: d.guestName,
+    antes: formatSubjectOwner(d.previousStart, d.ownerTimeZone),
+    depois: formatSubjectOwner(d.start, d.ownerTimeZone),
+  });
+  const title = fill(e.rescheduledIntro, { convidado: d.guestName });
+  const rows: [string, string][] = [
+    [e.guest, `${d.guestName} (${d.guestEmail})`],
+    [e.type, d.typeName],
+    [e.before, formatDateTimeLong(d.previousStart, d.ownerTimeZone)],
+    [e.after, formatDateTimeLong(d.start, d.ownerTimeZone)],
+  ];
+  if (d.meetLink) rows.push([copy.booking.meet, d.meetLink]);
+  return { subject, html: layout(title, rows, d.meetLink ? button(copy.booking.joinMeet, d.meetLink) : "", copy.appName), text: [title, "", ...rows.map(([k, v]) => `${k}: ${v}`)].join("\n") };
+}

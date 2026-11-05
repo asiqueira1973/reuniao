@@ -152,12 +152,35 @@ export const copy = {
     slotsMany: "{n} horários",
     noSlots: "sem horários",
   },
+  // Gerenciar, cancelar e remarcar (seção 15, épico 8.6).
+  manage: {
+    title: "Sua reunião",
+    reschedule: "Remarcar",
+    cancel: "Cancelar reunião",
+    confirmNewTime: "Confirmar novo horário",
+    cancelled: "Reunião cancelada. Avisei {dono}.",
+    past: "Esta reunião já aconteceu ou está acontecendo.",
+    invalidLink: "Este link não é válido.",
+    cancelFailed: "Não consegui cancelar agora. Tente de novo.",
+    // a aprovar (8.6)
+    reason: "Motivo (opcional)",
+    keep: "Manter reunião",
+    wasCancelled: "Esta reunião foi cancelada.",
+    wasRescheduled: "Esta reunião foi remarcada para {quando}. O link novo está no e-mail de confirmação.",
+    rescheduleTitle: "Escolha o novo horário",
+    currentTime: "Horário atual: {quando}",
+    newTime: "Novo horário",
+    rescheduleFailed: "Não consegui remarcar agora. Sua reunião continua no horário de antes. Tente de novo.",
+  },
   // E-mails (seção 15: assuntos; corpo aprovado em 05/11/2026).
   emails: {
     subjects: {
       confirmacao_convidado: "Confirmado: {tipo} com {dono} · {quando}",
       aviso_dono_nova: "Nova reunião: {convidado} · {quando}",
       reconectar_google: "Sua agenda foi desconectada",
+      aviso_dono_remarcada: "Remarcada: {convidado} · {antes} → {depois}",
+      aviso_dono_cancelada: "Cancelada: {convidado} · {quando}",
+      cancelamento_convidado: "Cancelada: {tipo} com {dono} · {quando}",
     },
     confirmationIntro: "Sua reunião com {dono} está marcada.",
     ownerIntro: "{convidado} marcou uma reunião com você.",
@@ -170,6 +193,13 @@ export const copy = {
     when: "Quando",
     type: "Tipo",
     guest: "Convidado",
+    // a aprovar (8.6)
+    cancelledByGuestIntro: "{convidado} cancelou a reunião.",
+    rescheduledIntro: "{convidado} remarcou a reunião.",
+    reason: "Motivo",
+    before: "Antes",
+    after: "Agora",
+    lostReschedule: "Falha ao remarcar: o horário antigo foi ocupado por outra reserva e o novo não pôde ser confirmado no Google.",
   },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",
@@ -182,6 +212,8 @@ export const copy = {
     limite_excedido: "Você já tem reuniões marcadas comigo. Para marcar outra, cancele uma delas pelo link do e-mail.",
     tipo_indisponivel: "Este tipo de reunião não está disponível.",
     agenda_indisponivel: "Agenda temporariamente indisponível.",
+    reuniao_iniciada: "Esta reunião já aconteceu ou está acontecendo.",
+    transicao_invalida: "Esta reunião não pode mais ser alterada.", // a aprovar (8.6)
   },
 } as const;
 

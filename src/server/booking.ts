@@ -55,7 +55,7 @@ export function manageUrl(token: string): string {
 }
 
 // Descrição do evento no Google (regra 11.5).
-function eventDescription(nome: string, email: string, observacao: string | null, token: string): string {
+export function eventDescription(nome: string, email: string, observacao: string | null, token: string): string {
   return [`Agendado por ${nome} (${email}).`, observacao ?? "", `Para cancelar ou remarcar: ${manageUrl(token)}`].filter(Boolean).join("\n\n");
 }
 

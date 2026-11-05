@@ -19,6 +19,26 @@ export class AvailabilityLookupError extends Error {
 
 export type AvailabilityResult = { fuso_conta: string; dias: DaySlots[]; conta: PublicAccount; tipo: PublicEventType };
 
+// Tira um intervalo dos ocupados (remarcação, 8.6): cada bloco vira o que sobra antes e depois.
+// Um compromisso que coincide exatamente com a reunião remarcada também some (limitação aceita:
+// seria um conflito que já existia antes).
+export function subtractInterval(busy: { inicio: string; fim: string }[], cut: { inicio: string; fim: string }) {
+  const cs = Date.parse(cut.inicio);
+  const ce = Date.parse(cut.fim);
+  const out: { inicio: string; fim: string }[] = [];
+  for (const b of busy) {
+    const bs = Date.parse(b.inicio);
+    const be = Date.parse(b.fim);
+    if (be <= cs || bs >= ce) {
+      out.push(b);
+      continue;
+    }
+    if (bs < cs) out.push({ inicio: b.inicio, fim: new Date(cs).toISOString() });
+    if (be > ce) out.push({ inicio: new Date(ce).toISOString(), fim: b.fim });
+  }
+  return out;
+}
+
 // Instante ISO da meia-noite de uma data civil no fuso da conta.
 function midnight(date: string, timeZone: string): Date {
   const [y, m, d] = date.split("-").map(Number);
@@ -34,6 +54,8 @@ export async function getAvailability(params: {
   from?: string;
   to?: string;
   now?: Date;
+  // Remarcação (8.6): o intervalo da própria reunião não conta como ocupado.
+  ignore?: { inicio: string; fim: string };
 }): Promise<AvailabilityResult> {
   const now = params.now ?? new Date();
   const conta = await getPublicAccount(params.accountSlug);
@@ -67,7 +89,7 @@ export async function getAvailability(params: {
     weekly,
     overrides,
     holidays: { feriados_ativos: conta.feriados_ativos, feriados_desligados: conta.feriados_desligados },
-    busy: [...googleBusy, ...reservations],
+    busy: params.ignore ? subtractInterval([...googleBusy, ...reservations], params.ignore) : [...googleBusy, ...reservations],
     now,
     from,
     to,

@@ -25,6 +25,8 @@ type Props = {
   accountTimeZone: string;
   todayAccount: string;
   windowEnd: string;
+  // Remarcação (8.6): token da reserva e horário atual; sem formulário, só "Confirmar novo horário".
+  reschedule?: { token: string; currentStart: string };
 };
 
 type MonthState =
@@ -97,6 +99,7 @@ export function BookingFlow(p: Props) {
     const de = addDays(`${ym}-01`, -1);
     const ate = addDays(lastDayOf(ym), 1);
     const qs = new URLSearchParams({ conta: p.accountSlug, tipo: p.typeSlug, de, ate });
+    if (p.reschedule) qs.set("remarcar", p.reschedule.token);
     const res = await fetch(`/api/disponibilidade?${qs}`, { cache: "no-store" }).catch(() => null);
     if (!res?.ok) {
       const code = res ? (await res.json().catch(() => ({}))).erro : null;
@@ -112,7 +115,7 @@ export function BookingFlow(p: Props) {
       if (!inMonth && `${next}-01` <= p.windowEnd) setMonth(next);
       else autoAdvance.current = false;
     }
-  }, [p.accountSlug, p.typeSlug, p.windowEnd]);
+  }, [p.accountSlug, p.typeSlug, p.windowEnd, p.reschedule]);
 
   // Busca o mês exibido quando ainda não foi buscado (o resultado chega depois, de forma assíncrona).
   const requested = useRef(new Set<string>());
@@ -146,6 +149,34 @@ export function BookingFlow(p: Props) {
   const firstWeekday = new Date(`${month}-01T12:00:00Z`).getUTCDay();
   const daysInMonth = Number(lastDayOf(month).slice(8, 10));
   const daySlots = selectedDate ? byDate[selectedDate] ?? [] : [];
+
+  // Remarcação: envia o horário novo e trata as respostas da seção 13.
+  async function submitReschedule() {
+    if (!selectedSlot || !p.reschedule) return;
+    setSending(true);
+    setNotice(null);
+    const res = await fetch("/api/reservas/gestao/remarcar", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token: p.reschedule.token, inicio: selectedSlot, fuso: tz }),
+    }).catch(() => null);
+    if (res?.status === 201) {
+      const { id } = (await res.json()) as { id: string };
+      router.push(`/${p.accountSlug}/${p.typeSlug}/confirmado?r=${id}`);
+      return;
+    }
+    setSending(false);
+    const code = res ? (await res.json().catch(() => ({}))).erro : null;
+    if (code === "horario_indisponivel") {
+      setStep("pick");
+      setSelectedSlot(null);
+      setNotice({ text: b.slotTaken, error: true });
+      void load(month);
+    } else if (code === "reuniao_iniciada") setNotice({ text: copy.manage.past, error: true });
+    else if (code === "transicao_invalida" || code === "nao_encontrado") setNotice({ text: copy.errors.transicao_invalida, error: true });
+    else if (code === "agenda_indisponivel") setNotice({ text: b.agendaRevoked, error: true });
+    else setNotice({ text: copy.manage.rescheduleFailed, error: true });
+  }
 
   // Envia a reserva e trata as respostas da seção 13.
   async function submit(form: HTMLFormElement) {
@@ -206,7 +237,22 @@ export function BookingFlow(p: Props) {
       </aside>
 
       <section className={styles.picker}>
-        {step === "form" && selectedSlot ? (
+        {step === "form" && selectedSlot && p.reschedule ? (
+          <div className={styles.form}>
+            <button type="button" className={styles.back} onClick={() => { setStep("pick"); setNotice(null); }}>
+              <ChevronLeft size={18} strokeWidth={1.75} aria-hidden="true" />{b.back}
+            </button>
+            <h2 className={styles.pickerTitle}>{copy.manage.newTime}</h2>
+            <p className={styles.chosen}>
+              {formatDateLong(localDate(selectedSlot, tz))}, {localTime(selectedSlot, tz)} ({timeZoneName(tz)})
+            </p>
+            <p className={styles.summaryRow}>
+              {copy.manage.currentTime.replace("{quando}", `${formatDateLong(localDate(p.reschedule.currentStart, tz))}, ${localTime(p.reschedule.currentStart, tz)}`)}
+            </p>
+            {notice && <p className={`${styles.message} ${notice.error ? styles.messageError : ""}`} role="alert">{notice.text}</p>}
+            <button type="button" className={styles.primary} disabled={sending} onClick={() => void submitReschedule()}>{copy.manage.confirmNewTime}</button>
+          </div>
+        ) : step === "form" && selectedSlot ? (
           <form className={styles.form} onSubmit={(e) => { e.preventDefault(); void submit(e.currentTarget); }}>
             <button type="button" className={styles.back} onClick={() => { setStep("pick"); setNotice(null); }}>
               <ChevronLeft size={18} strokeWidth={1.75} aria-hidden="true" />{b.back}
@@ -226,7 +272,7 @@ export function BookingFlow(p: Props) {
           </form>
         ) : (
           <>
-            <h2 className={styles.pickerTitle}>{b.calendarTitle}</h2>
+            <h2 className={styles.pickerTitle}>{p.reschedule ? copy.manage.rescheduleTitle : b.calendarTitle}</h2>
             <div className={styles.pickerColumns}>
               <div>
                 <div className={styles.monthBar}>
