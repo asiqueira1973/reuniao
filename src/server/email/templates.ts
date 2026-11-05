@@ -127,3 +127,19 @@ export function rescheduledToOwner(d: ChangeData & { previousStart: string; meet
   if (d.meetLink) rows.push([copy.booking.meet, d.meetLink]);
   return { subject, html: layout(title, rows, d.meetLink ? button(copy.booking.joinMeet, d.meetLink) : "", copy.appName), text: [title, "", ...rows.map(([k, v]) => `${k}: ${v}`)].join("\n") };
 }
+
+// Cancelamento pelo dono, para o convidado (regra 11.6): horário no fuso do convidado, motivo e
+// link da página pública para marcar de novo.
+export function cancellationToGuest(d: {
+  ownerName: string; typeName: string; start: string; guestTimeZone: string; reason: string | null; publicUrl: string;
+}): RenderedEmail {
+  const subject = fill(e.subjects.cancelamento_convidado, { tipo: d.typeName, dono: d.ownerName, quando: formatSubjectGuest(d.start, d.guestTimeZone) });
+  const title = fill(e.cancelledByOwnerIntro, { dono: d.ownerName });
+  const rows: [string, string][] = [[e.type, d.typeName], [e.when, `${formatDateTimeLong(d.start, d.guestTimeZone)} (${timeZoneName(d.guestTimeZone)})`]];
+  if (d.reason) rows.push([e.reason, d.reason]);
+  return {
+    subject,
+    html: layout(title, rows, button(e.bookAgain, d.publicUrl), copy.appName),
+    text: [title, "", ...rows.map(([k, v]) => `${k}: ${v}`), "", `${e.bookAgain}: ${d.publicUrl}`].join("\n"),
+  };
+}

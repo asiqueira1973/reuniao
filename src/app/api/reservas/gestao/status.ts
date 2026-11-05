@@ -2,6 +2,7 @@
 import type { ManageErrorCode } from "@/server/manage";
 
 export const MANAGE_STATUS: Record<ManageErrorCode, number> = {
+  dados_invalidos: 422,
   nao_encontrado: 404,
   transicao_invalida: 409,
   reuniao_iniciada: 409,

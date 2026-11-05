@@ -172,6 +172,42 @@ export const copy = {
     newTime: "Novo horário",
     rescheduleFailed: "Não consegui remarcar agora. Sua reunião continua no horário de antes. Tente de novo.",
   },
+  // Reuniões do dono (seção 15 e épico 8.7).
+  meetings: {
+    title: "Reuniões",
+    tabs: { proximas: "Próximas", passadas: "Passadas", canceladas: "Canceladas" },
+    empty: "Nenhuma reunião marcada.",
+    emailFailed: "E-mail não enviado",
+    resend: "Reenviar",
+    // a aprovar (8.7)
+    confirmed: "Confirmada",
+    cancelledStatus: "Cancelada",
+    back: "Reuniões",
+    notes: "Observação",
+    meet: "Google Meet",
+    rescheduledFrom: "Remarcada de {quando}",
+    emails: "E-mails",
+    emailSent: "Enviado",
+    emailPending: "Pendente",
+    cancel: "Cancelar reunião",
+    reasonForGuest: "Motivo (opcional, vai para o convidado)",
+    keep: "Manter reunião",
+    cancelledOk: "Reunião cancelada. O convidado foi avisado.",
+    cancelFailed: "Não consegui cancelar agora. Tente de novo.",
+    reason: "Motivo",
+    cancelledAt: "Cancelada em {quando}",
+    loadMore: "Mostrar mais",
+    resent: "Reenviado.",
+    resendLimit: "Este e-mail já foi tentado 5 vezes.",
+    notificationTypes: {
+      confirmacao_convidado: "Confirmação ao convidado",
+      aviso_dono_nova: "Aviso de reunião nova",
+      aviso_dono_remarcada: "Aviso de remarcação",
+      aviso_dono_cancelada: "Aviso de cancelamento",
+      cancelamento_convidado: "Cancelamento ao convidado",
+      reconectar_google: "Reconectar Google",
+    },
+  },
   // E-mails (seção 15: assuntos; corpo aprovado em 05/11/2026).
   emails: {
     subjects: {
@@ -199,6 +235,8 @@ export const copy = {
     reason: "Motivo",
     before: "Antes",
     after: "Agora",
+    cancelledByOwnerIntro: "{dono} cancelou a reunião.",
+    bookAgain: "Marcar outro horário",
     lostReschedule: "Falha ao remarcar: o horário antigo foi ocupado por outra reserva e o novo não pôde ser confirmado no Google.",
   },
   errors: {
@@ -214,6 +252,7 @@ export const copy = {
     agenda_indisponivel: "Agenda temporariamente indisponível.",
     reuniao_iniciada: "Esta reunião já aconteceu ou está acontecendo.",
     transicao_invalida: "Esta reunião não pode mais ser alterada.", // a aprovar (8.6)
+    limite_tentativas: "Este e-mail já foi tentado 5 vezes.", // a aprovar (8.7)
   },
 } as const;
 

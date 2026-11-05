@@ -30,6 +30,13 @@ async function deliver(notification: { id: string; tentativas: number; status: s
   }
 }
 
+// Reenvia uma notificação existente (reenvio manual do 8.7 e faxina do 8.9). "ignorada" não acontece
+// aqui porque quem chama já conferiu situação e tentativas; fica como "falhou" por segurança.
+export async function redeliver(notification: { id: string; tentativas: number; status: string }, d: Delivery): Promise<"enviada" | "falhou"> {
+  const result = await deliver(notification, d);
+  return result === "enviada" ? "enviada" : "falhou";
+}
+
 // Garante a linha (reserva_id, tipo) e envia, se ainda não foi enviada. Devolve o resultado.
 export async function notifyReservation(contaId: string, reservaId: string, tipo: NotificationType, d: Delivery) {
   await db().from("ag_notificacoes").upsert({ conta_id: contaId, reserva_id: reservaId, tipo }, { onConflict: "reserva_id,tipo", ignoreDuplicates: true });

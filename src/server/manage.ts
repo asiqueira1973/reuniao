@@ -14,7 +14,7 @@ import { CalendarError } from "@/server/google/calendar";
 import { deleteEvent, patchEvent } from "@/server/google/events";
 import { notifyReservation } from "@/server/notifications";
 
-export type ManageErrorCode = "nao_encontrado" | "transicao_invalida" | "reuniao_iniciada" | "horario_indisponivel" | "servico_indisponivel" | "agenda_indisponivel";
+export type ManageErrorCode = "dados_invalidos" | "nao_encontrado" | "transicao_invalida" | "reuniao_iniciada" | "horario_indisponivel" | "servico_indisponivel" | "agenda_indisponivel";
 
 // Erro de gestão com o código da seção 13.
 export class ManageError extends Error {
@@ -40,7 +40,7 @@ export async function getManageView(token: string, now = new Date()): Promise<Ma
       .from("ag_reservas")
       .select("inicio")
       .eq("remarcada_de_id", r.id)
-      .eq("status", "confirmada")
+      .in("status", ["confirmada", "remarcada", "cancelada_convidado", "cancelada_dono"])
       .order("criado_em", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -56,29 +56,36 @@ function assertChangeable(r: ManagedReservation | null, now: Date): asserts r is
   if (new Date(r.inicio) <= now) throw new ManageError("reuniao_iniciada");
 }
 
-// Cancelamento pelo convidado (critério 8.6): apaga o evento no Google (sendUpdates=all; já
-// apagado conta como apagado), grava cancelada_convidado, cancelada_em e motivo, e avisa o dono.
-// Google com erro → continua confirmada e servico_indisponivel.
+// Cancelamento pelo convidado (critério 8.6): primeiro "toma" a reserva no banco (confirmada →
+// cancelada_convidado, condicional), para uma remarcação simultânea não passar; depois apaga o
+// evento no Google (sendUpdates=all; já apagado conta como apagado). Google com erro → volta a
+// confirmada e servico_indisponivel. Enquanto isso o evento segue no Google, então o horário
+// continua ocupado para a página pública (princípio 2). Avisa o dono.
 export async function cancelByGuest(token: string, motivo: string | null, now = new Date()): Promise<{ ownerName: string }> {
   const r = await requireReservaPorToken(token);
   assertChangeable(r, now);
-  if (r.google_evento_id) {
-    try {
-      await deleteEvent(r.conta_id, r.google_evento_id);
-    } catch (e) {
-      if (e instanceof CalendarError) throw new ManageError(e.code === "agenda_indisponivel" ? "agenda_indisponivel" : "servico_indisponivel");
-      throw e;
-    }
-  }
   const reason = motivo?.trim() ? motivo.trim().slice(0, 500) : null;
-  const { data: updated, error } = await db()
+  const { data: claimed, error } = await db()
     .from("ag_reservas")
     .update({ status: "cancelada_convidado", cancelada_em: now.toISOString(), motivo_cancelamento: reason })
     .eq("id", r.id)
     .eq("status", "confirmada")
     .select("id");
   if (error) throw error;
-  if (!updated.length) throw new ManageError("transicao_invalida");
+  if (!claimed.length) throw new ManageError("transicao_invalida");
+  if (r.google_evento_id) {
+    try {
+      await deleteEvent(r.conta_id, r.google_evento_id);
+    } catch (e) {
+      await db()
+        .from("ag_reservas")
+        .update({ status: "confirmada", cancelada_em: null, motivo_cancelamento: null })
+        .eq("id", r.id)
+        .eq("status", "cancelada_convidado");
+      if (e instanceof CalendarError) throw new ManageError(e.code === "agenda_indisponivel" ? "agenda_indisponivel" : "servico_indisponivel");
+      throw e;
+    }
+  }
 
   const conta = r.ag_contas!;
   await notifyReservation(r.conta_id, r.id, "aviso_dono_cancelada", {
@@ -107,6 +114,8 @@ export async function rescheduleByGuest(token: string, inicio: string, fuso: str
   const startIso = new Date(inicio).toISOString();
   const oldStart = new Date(r.inicio).toISOString();
   const oldEnd = new Date(r.fim).toISOString();
+  // Mesmo horário não é remarcação (geraria reserva, link e e-mails à toa).
+  if (startIso === oldStart) throw new ManageError("dados_invalidos");
 
   let offered: string[];
   try {
@@ -154,7 +163,12 @@ export async function rescheduleByGuest(token: string, inicio: string, fuso: str
     throw e;
   }
 
-  const { error: e2 } = await db().from("ag_reservas").update({ status: "confirmada" }).eq("id", novaId);
+  // processando → confirmada; o evento já foi atualizado no Google, então tenta de novo antes de desistir.
+  let e2: unknown = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    ({ error: e2 } = await db().from("ag_reservas").update({ status: "confirmada" }).eq("id", novaId));
+    if (!e2) break;
+  }
   if (e2) {
     console.error("remarcacao_nao_confirmada", novaId);
     throw e2;

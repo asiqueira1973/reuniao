@@ -107,7 +107,8 @@ export function BookingFlow(p: Props) {
       return;
     }
     const body = (await res.json()) as { dias: { horarios: string[] }[] };
-    const slots = body.dias.flatMap((d) => d.horarios);
+    // Na remarcação o horário atual não é opção (remarcar para ele não muda nada).
+    const slots = body.dias.flatMap((d) => d.horarios).filter((h) => h !== p.reschedule?.currentStart);
     setMonths((m) => ({ ...m, [ym]: { status: "ok", slots } }));
     if (autoAdvance.current) {
       const inMonth = slots.some((iso) => localDate(iso, tzRef.current).startsWith(ym));
