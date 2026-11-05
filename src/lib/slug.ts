@@ -48,3 +48,11 @@ export function slugCandidates(base: string, count = 20): string[] {
   }
   return out;
 }
+
+// Limpa o que o dono digita no campo de endereço sem atrapalhar a digitação: igual a
+// normalizeSlug, mas mantém um hífen no fim (ele pode estar no meio de "reuniao-").
+export function sanitizeSlugInput(text: string): string {
+  const keepDash = /[-\s.]$/.test(text);
+  const base = normalizeSlug(text);
+  return keepDash && base && base.length < 30 ? `${base}-` : base;
+}

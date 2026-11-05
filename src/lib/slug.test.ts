@@ -1,6 +1,6 @@
 // Testes da regra 11.11 (slugs) e da sugestão de slug da conta nova (regra 11.9).
 import { describe, expect, it } from "vitest";
-import { isReservedAccountSlug, isValidSlug, normalizeSlug, slugCandidates } from "./slug";
+import { isReservedAccountSlug, isValidSlug, normalizeSlug, sanitizeSlugInput, slugCandidates } from "./slug";
 
 describe("normalizeSlug (regra 11.11)", () => {
   it("converte a parte local do e-mail do exemplo do spec", () => {
@@ -42,5 +42,13 @@ describe("slugCandidates (regra 11.9)", () => {
   it("respeita 30 caracteres com sufixo", () => {
     const base = "a".repeat(30);
     for (const c of slugCandidates(base, 12)) expect(isValidSlug(c)).toBe(true);
+  });
+});
+
+describe("sanitizeSlugInput", () => {
+  it("mantém o hífen final enquanto se digita", () => {
+    expect(sanitizeSlugInput("Reunião-")).toBe("reuniao-");
+    expect(sanitizeSlugInput("reuniao 1")).toBe("reuniao-1");
+    expect(sanitizeSlugInput("-")).toBe("");
   });
 });

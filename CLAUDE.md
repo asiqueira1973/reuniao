@@ -24,7 +24,7 @@ Saída saudável do verify: termina com a tabela de rotas do `next build`, códi
 `npm run dev` sobe em `http://localhost:3020`.
 
 ## Pegadinhas
-- Supabase local usa as portas **554xx** (API 55421, DB 55422); 543xx e 553xx são de outros projetos. Stack enxuta (sem Studio/Mailpit/storage…) porque o Docker é dividido com outros dois Supabase; não desligue o `[auth]` (o Kong depende dele).
+- Supabase local usa as portas **554xx** (API 55421, DB 55422); 543xx e 553xx são de outros projetos. Stack enxuta (sem Studio/Mailpit/storage…) porque o Docker é dividido com outros dois Supabase; não desligue o `[auth]` (o Kong depende dele). Se as páginas travarem ou o Postgres cancelar por timeout (`57014`), confira `docker stats`: outros Supabase locais ligados sufocam o Docker; peça para pará-los.
 - Remoto compartilhado: migrations via MCP `apply_migration` (mesmo SQL do arquivo), nunca `supabase db push`; advisors filtrados a `ag_*`; regenerar `supabase/schema.sql` no mesmo commit.
 - Service role ignora RLS: toda consulta filtra por `conta_id` da sessão ou `token_hash` (seção 6).
 - Rotas do painel: `requireConta()` na primeira linha; gestão do convidado: `requireReservaPorToken()`.

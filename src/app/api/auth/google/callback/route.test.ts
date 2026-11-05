@@ -87,7 +87,7 @@ describe("GET /api/auth/google/callback (épico 8.1)", () => {
     const sub = `sub-${randomUUID()}`;
     mockGoogle({ sub });
     const res = await GET(callback());
-    expect(res.headers.get("location")).toBe("http://localhost:3020/painel");
+    expect(res.headers.get("location")).toBe("http://localhost:3020/painel/tipos");
 
     const [conta] = await accountBySub(sub);
     expect(conta).toBeDefined();
@@ -120,7 +120,7 @@ describe("GET /api/auth/google/callback (épico 8.1)", () => {
     await GET(callback());
     mockGoogle({ sub, refreshToken: "1//token-novo" });
     const res = await GET(callback());
-    expect(res.headers.get("location")).toBe("http://localhost:3020/painel");
+    expect(res.headers.get("location")).toBe("http://localhost:3020/painel/tipos");
 
     const contas = await accountBySub(sub);
     expect(contas).toHaveLength(1);

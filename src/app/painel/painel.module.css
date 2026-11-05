@@ -1,40 +1,24 @@
-/* Painel provisório do épico 8.1 (seção 16). */
-.page {
+/* Casca do painel (seção 16): conteúdo à direita do menu lateral no desktop. */
+.shell { min-height: 100dvh; background: var(--bg); }
+
+.content {
   min-height: 100dvh;
-  padding: 48px 16px;
-  background: var(--surface);
+  margin-left: 260px;
+  padding: 40px 48px 64px;
+  max-width: calc(260px + 960px);
 }
 
-.card {
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 160px;
-  background: var(--bg);
-  border-radius: var(--radius-card);
-  padding: 28px;
+@media (max-width: 1023px) {
+  .content { margin-left: 0; padding: 20px 16px 48px; min-height: calc(100dvh - 52px); }
 }
 
-.title {
-  margin: 0 0 4px;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+/* Cabeçalho de página reutilizado pelas telas do painel. */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
 }
-
-.secondary {
-  margin: 0 0 4px;
-  color: var(--text-secondary);
-}
-
-.button {
-  margin-top: 20px;
-  min-height: var(--tap);
-  padding: 0 20px;
-  border-radius: 999px;
-  border: 1px solid var(--hairline);
-  background: var(--bg);
-  color: var(--red);
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
+.pageTitle { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.025em; }
+@media (max-width: 1023px) { .pageTitle { font-size: 28px; } }

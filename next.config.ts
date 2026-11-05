@@ -4,6 +4,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  // "/" e "/painel" não têm tela própria: abrem em Tipos de evento (seção 8.1). Sem sessão, o
+  // proxy manda para /entrar. Redirecionar aqui evita redirect() dentro de página pré-renderizada.
+  async redirects() {
+    return [
+      { source: "/", destination: "/painel/tipos", permanent: false },
+      { source: "/painel", destination: "/painel/tipos", permanent: false },
+    ];
+  },
 };
 
 export default nextConfig;

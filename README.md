@@ -11,7 +11,8 @@ Agendamento pessoal (substituto do uso básico do Calendly). Especificação em 
 
 ## Comandos
 - `npm run verify`: typecheck → lint → testes (pgTAP local + Vitest) → build.
-- `npm run seed:calendly -- <email> [--slug <slug>]`: grava os tipos de evento do Calendly numa conta existente.
+- `npm run seed:calendly -- <email> [--slug <slug>]`: grava os 5 tipos de evento do Calendly numa conta existente (entre com o Google uma vez antes) e, com `--slug`, troca o endereço público. Pode rodar de novo sem duplicar.
+- `npm run db:types`: regenera `src/server/db/types.ts` a partir do banco local.
 
 ## Variáveis
 Ver `.env.example` e a seção 18 do spec. Gere os segredos com `openssl rand -base64 32` (`TOKEN_ENC_KEY`, `SESSION_SECRET`, `CRON_SECRET`).

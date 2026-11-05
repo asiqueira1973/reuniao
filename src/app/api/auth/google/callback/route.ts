@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       scopes: tokens.scopes,
     });
 
-    const res = NextResponse.redirect(new URL("/painel", req.url), 302);
+    const res = NextResponse.redirect(new URL("/painel/tipos", req.url), 302);
     res.cookies.set(SESSION_COOKIE, await signSession(contaId), sessionCookieOptions());
     res.cookies.delete({ name: OAUTH_STATE_COOKIE, path: OAUTH_STATE_PATH });
     return res;
