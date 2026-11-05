@@ -103,13 +103,16 @@ export async function verifyIdToken(idToken: string, jwks?: JWTVerifyGetKey): Pr
 // de qualquer forma. Recebe: refresh token em claro.
 export async function revokeToken(token: string): Promise<void> {
   try {
-    await fetch(GOOGLE_REVOKE_URL, {
+    const res = await fetch(GOOGLE_REVOKE_URL, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ token }),
       signal: AbortSignal.timeout(5000),
     });
+    // 400 invalid_token = já revogado. Outro erro: a conta é apagada mesmo assim; o dono pode
+    // remover o acesso em myaccount.google.com/permissions. Sem log do token (seção 20).
+    if (!res.ok && res.status !== 400) console.error("revogacao_falhou", { status: res.status });
   } catch {
-    // Sem log do token (seção 20).
+    console.error("revogacao_falhou", { status: 0 });
   }
 }

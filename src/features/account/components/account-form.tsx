@@ -31,6 +31,7 @@ export function AccountForm({ initial, email, connection, timeZones, siteUrl }: 
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [deleteText, setDeleteText] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const slug = normalizeSlug(values.slug);
   const slugChanged = slug !== saved.slug;
@@ -50,6 +51,7 @@ export function AccountForm({ initial, email, connection, timeZones, siteUrl }: 
   // Atualiza um campo e apaga o aviso anterior.
   function set<K extends keyof AccountValues>(key: K, value: AccountValues[K]) {
     setMessage(null);
+    setConfirmSlug(false);
     if (key === "slug") setSlugFree(null);
     setValues((v) => ({ ...v, [key]: value }));
   }
@@ -89,7 +91,7 @@ export function AccountForm({ initial, email, connection, timeZones, siteUrl }: 
     }).catch(() => null);
     if (!res?.ok) {
       setBusy(false);
-      setMessage({ ok: false, text: apiErrorText(res ? (await res.json().catch(() => ({}))).erro : null) });
+      setDeleteError(apiErrorText(res ? (await res.json().catch(() => ({}))).erro : null));
       return;
     }
     router.replace("/entrar");
@@ -159,10 +161,11 @@ export function AccountForm({ initial, email, connection, timeZones, siteUrl }: 
         <p className={styles.hint}>{c.deleteIntro}</p>
         <label className={styles.field}>
           <span className={styles.label}>{c.deleteTypeSlug(saved.slug)}</span>
-          <input className={styles.input} value={deleteText} autoCapitalize="none" autoCorrect="off" spellCheck={false} onChange={(e) => setDeleteText(e.target.value)} />
+          <input className={styles.input} value={deleteText} autoCapitalize="none" autoCorrect="off" spellCheck={false} onChange={(e) => { setDeleteError(null); setDeleteText(e.target.value); }} />
         </label>
         <div className={styles.actions}>
           <button type="button" className={styles.dangerButton} disabled={busy || deleteText.trim() !== saved.slug} onClick={() => void onDelete()}>{c.deleteButton}</button>
+          {deleteError ? <span role="status" className={styles.errorText}>{deleteError}</span> : null}
         </div>
       </section>
     </div>

@@ -52,6 +52,7 @@ describe("GET/PATCH /api/painel/conta", () => {
 
   it("rejeita fuso inválido, nome vazio, campo não editável e slug reservado", async () => {
     expect((await patch(a.cookie, { fuso: "Marte/Olympus" })).status).toBe(422);
+    for (const fuso of ["+03:00", "america/sao_paulo"]) expect((await patch(a.cookie, { fuso })).status).toBe(422);
     expect((await patch(a.cookie, { nome_exibicao: "  " })).status).toBe(422);
     expect((await patch(a.cookie, { email: "x@y.dev" })).status).toBe(422);
     const reserved = await patch(a.cookie, { slug: "painel" });

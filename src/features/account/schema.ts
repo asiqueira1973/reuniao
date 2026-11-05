@@ -2,11 +2,13 @@
 import { z } from "zod";
 import { isReservedAccountSlug, SLUG_PATTERN } from "@/lib/slug";
 
-// Fuso IANA válido para o Intl (regra 11.1).
+// Fuso IANA válido (regra 11.1): só nomes da lista do Intl (ex.: America/Sao_Paulo), com a
+// grafia exata; recusa deslocamentos ("+03:00") e variações de caixa que o Intl também aceitaria.
 export function isTimeZone(tz: string): boolean {
+  if (typeof Intl.supportedValuesOf === "function" && Intl.supportedValuesOf("timeZone").includes(tz)) return true;
   try {
-    new Intl.DateTimeFormat("en", { timeZone: tz });
-    return true;
+    // Nomes válidos fora da lista (ex.: UTC) só se o Intl devolver a mesma grafia.
+    return new Intl.DateTimeFormat("en", { timeZone: tz }).resolvedOptions().timeZone === tz && /^[A-Za-z_]+(?:\/[A-Za-z_+-]+)*$/.test(tz);
   } catch {
     return false;
   }

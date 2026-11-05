@@ -5,6 +5,7 @@ import { isReservedAccountSlug, isValidSlug } from "@/lib/slug";
 import { requireConta } from "@/server/auth/require-conta";
 import { isSlugAvailable } from "@/server/db/account-settings";
 
+// GET: confere formato, reservados e se outra conta já usa o slug.
 export async function GET(req: NextRequest) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;
