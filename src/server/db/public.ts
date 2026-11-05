@@ -68,3 +68,30 @@ export async function listBlockingReservations(contaId: string, fromIso: string,
   if (error) throw error;
   return data;
 }
+
+// Tipos que aparecem na página da conta: não excluídos, ativos e visíveis, na ordem do painel.
+export async function listPublicEventTypes(contaId: string): Promise<Pick<PublicEventType, "id" | "nome" | "slug" | "duracao_min" | "com_meet" | "descricao">[]> {
+  const { data, error } = await db()
+    .from("ag_tipos_evento")
+    .select("id, nome, slug, duracao_min, com_meet, descricao")
+    .eq("conta_id", contaId)
+    .is("excluido_em", null)
+    .eq("ativo", true)
+    .eq("visivel_na_pagina", true)
+    .order("ordem")
+    .order("criado_em");
+  if (error) throw error;
+  return data;
+}
+
+// Reserva para a tela de confirmado (só com o cookie certo; ver src/server/auth/confirmation.ts).
+export async function getConfirmedReservation(reservaId: string) {
+  const { data, error } = await db()
+    .from("ag_reservas")
+    .select("id, inicio, fim, email_convidado, fuso_convidado, link_meet, status, ag_tipos_evento(nome), ag_contas(nome_exibicao, slug)")
+    .eq("id", reservaId)
+    .eq("status", "confirmada")
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}

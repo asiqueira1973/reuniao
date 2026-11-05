@@ -8,7 +8,9 @@ import { z } from "zod";
 import { addDays } from "@/features/availability/holidays";
 import { AvailabilityLookupError, getAvailability } from "@/server/availability";
 import { CalendarError } from "@/server/google/calendar";
-import { apiError } from "@/server/http";
+import { getPublicAccount } from "@/server/db/public";
+import { apiError, runAfterResponse } from "@/server/http";
+import { ensureReconnectNotice } from "@/server/notifications";
 
 const MAX_SPAN_DAYS = 42;
 
@@ -30,7 +32,17 @@ export async function GET(req: NextRequest) {
     const { fuso_conta, dias } = await getAvailability({ accountSlug: q.conta, typeSlug: q.tipo, from: q.de, to: q.ate });
     return Response.json({ fuso_conta, dias }, { headers: { "cache-control": "no-store" } });
   } catch (e) {
-    if (e instanceof AvailabilityLookupError) return apiError(e.code, e.code === "agenda_indisponivel" ? 503 : 404);
+    if (e instanceof AvailabilityLookupError) {
+      if (e.code === "agenda_indisponivel") {
+        // Seção 6: avisa o dono uma vez para reconectar (depois de responder ao convidado).
+        runAfterResponse(async () => {
+          const conta = await getPublicAccount(q.conta);
+          if (conta) await ensureReconnectNotice(conta.id);
+        });
+        return apiError(e.code, 503);
+      }
+      return apiError(e.code, 404);
+    }
     if (e instanceof CalendarError) return apiError(e.code, 503);
     throw e;
   }

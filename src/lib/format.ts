@@ -39,3 +39,26 @@ export function formatDateLong(date: string, referenceYear?: number): string {
 export function formatDateShort(date: string): string {
   return new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
 }
+
+// Data e hora de um instante ISO num fuso, por extenso: "segunda-feira, 9 de novembro de 2026, 10:30".
+export function formatDateTimeLong(iso: string, timeZone: string): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone,
+  }).format(new Date(iso));
+}
+
+// Data e hora curtas para assuntos de e-mail (seção 15): "09/11 às 10:30".
+export function formatDateTimeShort(iso: string, timeZone: string): string {
+  const d = new Date(iso);
+  const date = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone }).format(d);
+  const time = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone }).format(d);
+  return `${date} às ${time}`;
+}
+
+// Nome do fuso como o convidado reconhece: "Horário de Brasília", "Horário da Europa Ocidental"…
+export function timeZoneName(timeZone: string): string {
+  const part = new Intl.DateTimeFormat("pt-BR", { timeZone, timeZoneName: "longGeneric" })
+    .formatToParts(new Date())
+    .find((p) => p.type === "timeZoneName");
+  return part?.value ?? timeZone;
+}

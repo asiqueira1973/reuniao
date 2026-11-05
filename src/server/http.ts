@@ -1,5 +1,6 @@
 // Utilidades das rotas de API — seção 13: erros sempre como { "erro": "<codigo>" }.
 import "server-only";
+import { after } from "next/server";
 import type { z } from "zod";
 
 // Resposta de erro padrão da seção 13.
@@ -25,4 +26,16 @@ export async function parseBody<S extends z.ZodType>(req: Request, schema: S): P
     return apiError(marked ? marked.message : "dados_invalidos", 422);
   }
   return parsed.data;
+}
+
+// Agenda uma tarefa para depois da resposta (ex.: aviso por e-mail). Em requisição real usa o
+// after() do Next; fora dela (scripts, testes), roda em segundo plano. Erros são engolidos: a
+// tarefa nunca derruba a resposta já enviada.
+export function runAfterResponse(task: () => Promise<void>): void {
+  const safe = () => task().catch(() => undefined);
+  try {
+    after(safe);
+  } catch {
+    void safe();
+  }
 }

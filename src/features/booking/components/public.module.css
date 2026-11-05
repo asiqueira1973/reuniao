@@ -1,0 +1,185 @@
+/* Página pública (seção 16): uma coluna no celular; no desktop (≥ 900 px) cartão central de até
+   1.000 px com duas colunas (resumo à esquerda, calendário à direita). Dias em círculos de 44 px,
+   horários em pílulas de largura total com 44 px de altura. */
+.page { min-height: 100dvh; background: var(--surface); padding: 32px 16px 48px; }
+.card {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: var(--bg);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+.cardNarrow { max-width: 640px; padding: 32px 24px; }
+
+/* Página da conta */
+.ownerName { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; text-align: center; }
+.welcome { margin: 8px auto 28px; max-width: 460px; color: var(--text-secondary); font-size: 16px; text-align: center; white-space: pre-line; }
+.typeList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.typeLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+}
+.typeLink:hover { background: var(--accent-soft); }
+.typeMain { flex: 1; min-width: 0; }
+.typeName { display: block; font-size: 18px; font-weight: 600; }
+.typeMeta { display: block; margin-top: 2px; font-size: 14px; color: var(--text-secondary); }
+.chevron { color: var(--text-secondary); }
+
+/* Reserva */
+.layout { display: grid; grid-template-columns: 1fr; }
+.summary { padding: 28px 24px; border-bottom: 1px solid var(--hairline); }
+.summaryOwner { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+.summaryTitle { margin: 0 0 16px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.summaryRow { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 15px; color: var(--text-secondary); }
+.summaryDesc { margin: 16px 0 0; font-size: 15px; white-space: pre-line; }
+.picker { padding: 28px 24px; }
+.pickerTitle { margin: 0 0 20px; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+
+.monthBar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.monthName { font-size: 17px; font-weight: 600; }
+.monthName::first-letter { text-transform: uppercase; }
+.navButton {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+}
+.navButton:disabled { color: var(--text-secondary); opacity: 0.4; cursor: default; }
+.navButton:hover:not(:disabled) { background: var(--accent-soft); }
+
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; justify-items: center; }
+.weekday { font-size: 12px; color: var(--text-secondary); font-weight: 600; padding: 4px 0 6px; text-transform: lowercase; }
+.day {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.dayAvailable { background: var(--accent-soft); color: var(--accent); font-weight: 700; cursor: pointer; }
+.dayAvailable:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.daySelected, .daySelected:hover { background: var(--accent); color: #fff; }
+.today::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: currentColor; }
+.dayEmpty { width: 44px; height: 44px; }
+
+.tz { margin-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+.tzLabel { font-size: 14px; font-weight: 600; }
+.tzSelect {
+  min-height: var(--tap);
+  max-width: 100%;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.slots { margin-top: 24px; }
+.slotsDay { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+.slotsDay::first-letter { text-transform: uppercase; }
+.slotList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+.slot {
+  width: 100%;
+  min-height: var(--tap);
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--bg);
+  color: var(--accent);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.slot:hover { border-color: var(--accent); }
+.slotSplit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.slotChosen { display: grid; place-items: center; width: 100%; min-height: var(--tap); border-radius: 12px; border: 0; background: color-mix(in srgb, var(--text) 70%, transparent); color: var(--bg); font: inherit; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.primary {
+  width: 100%;
+  min-height: var(--tap);
+  border-radius: 12px;
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.primary:disabled { opacity: 0.5; cursor: default; }
+.primaryPill { border-radius: 999px; padding: 0 24px; width: auto; }
+
+.message { margin: 24px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--surface); font-size: 15px; }
+.messageError { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
+.linkButton { margin-top: 8px; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.skeleton { height: 300px; border-radius: 18px; background: linear-gradient(90deg, var(--surface), var(--hairline), var(--surface)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.form { display: flex; flex-direction: column; gap: 16px; }
+.back { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 15px; cursor: pointer; }
+.chosen { margin: 0; font-size: 16px; font-weight: 600; }
+.chosen::first-letter { text-transform: uppercase; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+.input, .textarea {
+  min-height: var(--tap);
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 400;
+}
+.textarea { min-height: 96px; padding: 10px 12px; resize: vertical; }
+.input:focus, .textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+/* Honeypot (regra 11.8): fora da tela e fora da ordem do Tab. */
+.honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Confirmado */
+.done { text-align: center; }
+.doneIcon { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green); margin-bottom: 16px; }
+.doneTitle { margin: 0 0 16px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.doneDetails { margin: 0 auto 16px; display: inline-flex; flex-direction: column; gap: 6px; text-align: left; font-size: 16px; }
+.doneDetails span::first-letter { text-transform: uppercase; }
+.doneNote { margin: 16px 0 0; color: var(--text-secondary); font-size: 15px; }
+
+@media (min-width: 900px) {
+  .page { padding-top: 64px; }
+  .layout { grid-template-columns: 320px 1fr; min-height: 560px; }
+  .summary { border-bottom: 0; border-right: 1px solid var(--hairline); padding: 36px 32px; }
+  .picker { padding: 36px 32px; }
+  .pickerColumns { display: grid; grid-template-columns: minmax(300px, 1fr) 220px; gap: 32px; align-items: start; }
+  .slots { margin-top: 0; }
+  .cardNarrow { padding: 48px 40px; }
+}
+
+/* Celular: 7 dias precisam caber em 375 px com as margens. */
+@media (max-width: 899px) {
+  .page { padding: 16px 12px 32px; }
+  .summary, .picker { padding: 20px 16px; }
+  .grid { gap: 2px; }
+  .day, .dayEmpty { width: 40px; height: 40px; }
+  .cardNarrow { padding: 28px 16px; }
+}
+
+/* Itens de grid não podem crescer pelo conteúdo (nomes de fuso longos no seletor). */
+.layout > *, .pickerColumns > * { min-width: 0; }
+.tzSelect { width: 100%; }
