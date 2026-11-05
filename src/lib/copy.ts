@@ -1,6 +1,6 @@
 // Textos oficiais do produto — seção 15 (conteúdo final, pt-BR). Nenhum texto de interface fora daqui.
-// Rótulos de navegação e de campos vêm das seções 10 e 16 e do prompt de design. Textos marcados
-// "a aprovar" não estão na seção 15 (listados em plans/8.2-tipos-de-evento.md).
+// Rótulos de navegação e de campos vêm das seções 10 e 16 e do prompt de design. Textos fora da
+// seção 15 aprovados pelo Alexandre em 04/11/2026 (8.2) ou marcados "a aprovar" (épicos seguintes).
 
 export const copy = {
   appName: "Reunião",
@@ -13,6 +13,23 @@ export const copy = {
     },
     retry: "Tentar de novo",
   },
+  // Nomes dos feriados da regra 11.4.
+  holidays: {
+    confraternizacao: "Confraternização Universal",
+    carnaval_segunda: "Carnaval (segunda)",
+    carnaval_terca: "Carnaval (terça)",
+    cinzas: "Quarta-feira de Cinzas",
+    sexta_santa: "Sexta-feira Santa",
+    tiradentes: "Tiradentes",
+    trabalho: "Dia do Trabalho",
+    corpus_christi: "Corpus Christi",
+    independencia: "Independência",
+    aparecida: "Nossa Senhora Aparecida",
+    finados: "Finados",
+    republica: "Proclamação da República",
+    consciencia_negra: "Consciência Negra",
+    natal: "Natal",
+  },
   // Unidades de tempo usadas pelos formatadores de src/lib/format.ts.
   units: { minutes: "min", hours: "h", day: "dia", days: "dias" },
   nav: {
@@ -23,7 +40,6 @@ export const copy = {
     account: "Conta",
     signOut: "Sair",
     viewMyPage: "Ver minha página",
-    // a aprovar (rótulos de acessibilidade)
     openMenu: "Abrir menu",
     closeMenu: "Fechar menu",
   },
@@ -38,7 +54,6 @@ export const copy = {
     meet: "Google Meet",
     hidden: "Oculto",
     inactive: "Inativo",
-    // a aprovar (rótulos de acessibilidade)
     moveUp: "Mover para cima",
     moveDown: "Mover para baixo",
     dragHandle: "Arrastar para reordenar",
@@ -62,19 +77,59 @@ export const copy = {
     },
     save: "Salvar",
     delete: "Excluir",
-    cancel: "Cancelar", // a aprovar
+    cancel: "Cancelar",
     back: "Tipos de evento",
-    // a aprovar (não estão na seção 15)
     saved: "Salvo.",
     deleteConfirm: "Excluir este tipo de reunião? As reuniões já marcadas continuam valendo.",
     hiddenHint: "Desligado, o tipo some da sua página, mas o link direto continua funcionando.",
   },
+  availability: {
+    title: "Disponibilidade",
+    save: "Salvar",
+    saved: "Salvo.",
+    weekly: {
+      title: "Horários semanais",
+      unavailable: "Indisponível",
+      overlap: "Esses horários se sobrepõem.",
+      copyTo: "Copiar para…",
+      // a aprovar (8.3)
+      addRange: "Adicionar faixa",
+      removeRange: "Remover faixa",
+      apply: "Aplicar",
+      start: "Início",
+      end: "Fim",
+      invalid: "Confira os horários: o fim precisa ser depois do início.",
+    },
+    days: {
+      short: ["D", "S", "T", "Q", "Q", "S", "S"],
+      long: ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"],
+    },
+    dates: {
+      title: "Datas específicas",
+      add: "Adicionar data",
+      unavailableAllDay: "Indisponível o dia todo",
+      // a aprovar (8.3)
+      customHours: "Horários próprios",
+      date: "Data",
+      empty: "Nenhuma data específica.",
+      remove: "Remover",
+      edit: "Editar",
+      cancel: "Cancelar",
+    },
+    holidays: {
+      title: "Feriados",
+      country: "Brasil",
+      // a aprovar (8.3)
+      next: "Próximo:",
+    },
+  },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",
-    // a aprovar
     slug_invalido: "Use de 3 a 30 letras minúsculas, números ou hífen.",
     dados_invalidos: "Confira os campos destacados.",
     generic: "Não consegui salvar agora. Tente de novo em instantes.",
+    faixa_sobreposta: "Esses horários se sobrepõem.",
+    excecao_conflitante: "Esses horários se sobrepõem.",
   },
 } as const;
 

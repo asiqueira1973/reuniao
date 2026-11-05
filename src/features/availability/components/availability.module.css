@@ -1,0 +1,135 @@
+/* Tela Disponibilidade (seção 16): três blocos em cards claros, hairlines, campos de 44 px. */
+.blocks { display: flex; flex-direction: column; gap: 24px; max-width: 760px; }
+.block { padding: 20px; border-radius: var(--radius-card); background: var(--surface); }
+.blockTitle { margin: 0 0 16px; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+
+.dayRow { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; }
+.dayRow + .dayRow { border-top: 1px solid var(--hairline); }
+.dayBadge {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 700;
+}
+.dayBadgeOff { background: var(--hairline); color: var(--text-secondary); }
+.ranges { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.unavailable { min-height: var(--tap); display: flex; align-items: center; color: var(--text-secondary); font-size: 15px; }
+.range { display: flex; align-items: center; gap: 6px; }
+.time {
+  width: 104px;
+  min-height: var(--tap);
+  padding: 0 10px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.time:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.dash { color: var(--text-secondary); }
+.dayActions { display: flex; gap: 2px; flex-shrink: 0; position: relative; }
+
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.iconButton:hover:not(:disabled) { background: var(--hairline); color: var(--text); }
+.iconButton:disabled { opacity: 0.3; cursor: default; }
+
+.popover {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  z-index: 10;
+  width: 220px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.popoverTitle { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.check { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 15px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+.footer { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.primaryButton, .secondaryButton, .dangerLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.primaryButton { background: var(--accent); border-color: var(--accent); color: #fff; }
+.primaryButton:disabled { opacity: 0.5; cursor: default; }
+.dangerLink { border: 0; background: none; padding: 0 8px; color: var(--red); min-height: 36px; font-size: 14px; }
+.smallButton { min-height: 36px; padding: 0 14px; font-size: 14px; }
+.error { margin: 12px 0 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); font-size: 15px; }
+.success { color: var(--green); font-size: 15px; font-weight: 600; }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.listItem { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+.listItem + .listItem { border-top: 1px solid var(--hairline); }
+.listMain { flex: 1; min-width: 0; }
+.listTitle { margin: 0; font-size: 16px; font-weight: 600; }
+.listTitle::first-letter { text-transform: uppercase; }
+.listMeta { margin: 2px 0 0; font-size: 14px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.empty { margin: 0; color: var(--text-secondary); font-size: 15px; }
+
+.form { margin-top: 16px; padding: 16px; border-radius: 16px; background: var(--bg); display: flex; flex-direction: column; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+.dateInput { width: 180px; min-height: var(--tap); padding: 0 10px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--bg); color: var(--text); font: inherit; font-size: 16px; }
+.radio { display: flex; align-items: center; gap: 10px; min-height: 36px; font-size: 15px; cursor: pointer; }
+.radio input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+.holidayRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 4px 0; }
+.holidayRow + .holidayRow { border-top: 1px solid var(--hairline); }
+.holidayName { font-size: 15px; }
+.holidayCountry { font-size: 17px; font-weight: 700; }
+.holidayNext { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+.holidayRight { display: flex; align-items: center; gap: 12px; }
+.disabled { opacity: 0.45; }
+.switch { appearance: none; width: 51px; height: 31px; border-radius: 999px; background: var(--hairline); position: relative; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.15s; }
+.switch:checked { background: var(--green); }
+.switch:checked::after { transform: translateX(20px); }
+.switch:disabled { cursor: default; }
+
+@media (max-width: 640px) {
+  .block { padding: 16px 12px; }
+  .time { width: 96px; padding: 0 8px; }
+  /* No celular: dia e botões na primeira linha, faixas embaixo na largura toda. */
+  .dayRow { flex-wrap: wrap; gap: 4px 8px; }
+  .dayBadge { margin-top: 6px; }
+  .dayActions { margin-left: auto; }
+  .ranges { order: 3; flex-basis: 100%; padding-left: 40px; }
+  .holidayNext { display: block; }
+  .holidayRight { flex-direction: column-reverse; align-items: flex-end; gap: 2px; }
+}

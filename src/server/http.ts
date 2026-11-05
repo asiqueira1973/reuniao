@@ -7,8 +7,11 @@ export function apiError(code: string, status: number): Response {
   return Response.json({ erro: code }, { status });
 }
 
-// Lê o corpo JSON e valida com o schema. Devolve os dados ou uma Response 422 dados_invalidos
-// (corpo que não é JSON também é dados_invalidos).
+// Códigos de negócio que um schema pode marcar como mensagem do erro (ex.: faixa_sobreposta).
+const ISSUE_CODES = new Set(["faixa_sobreposta"]);
+
+// Lê o corpo JSON e valida com o schema. Devolve os dados ou uma Response 422 com o código de
+// negócio marcado pelo schema, ou dados_invalidos (corpo que não é JSON também é dados_invalidos).
 export async function parseBody<S extends z.ZodType>(req: Request, schema: S): Promise<z.infer<S> | Response> {
   let raw: unknown;
   try {
@@ -17,6 +20,9 @@ export async function parseBody<S extends z.ZodType>(req: Request, schema: S): P
     return apiError("dados_invalidos", 422);
   }
   const parsed = schema.safeParse(raw);
-  if (!parsed.success) return apiError("dados_invalidos", 422);
+  if (!parsed.success) {
+    const marked = parsed.error.issues.find((i) => ISSUE_CODES.has(i.message));
+    return apiError(marked ? marked.message : "dados_invalidos", 422);
+  }
   return parsed.data;
 }

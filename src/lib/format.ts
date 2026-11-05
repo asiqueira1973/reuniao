@@ -24,3 +24,18 @@ export function formatMinutes(minutes: number): string {
   }
   return formatDuration(minutes);
 }
+
+// Data civil "AAAA-MM-DD" por extenso (seção 17): "terça-feira, 4 de novembro". Ano só quando
+// diferente do ano de referência. Usa UTC ao meio-dia para não trocar de dia por fuso.
+export function formatDateLong(date: string, referenceYear?: number): string {
+  const d = new Date(`${date}T12:00:00Z`);
+  const withYear = referenceYear !== undefined && d.getUTCFullYear() !== referenceYear;
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long", day: "numeric", month: "long", ...(withYear ? { year: "numeric" } : {}), timeZone: "UTC",
+  }).format(d);
+}
+
+// Data curta como no Calendly: "1 de jan. de 2027".
+export function formatDateShort(date: string): string {
+  return new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
+}
