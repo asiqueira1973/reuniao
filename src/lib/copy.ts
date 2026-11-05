@@ -271,7 +271,7 @@ export const copy = {
     link: "Privacidade",
     collected: "Quando você marca uma reunião por esta página, guardo seu nome, seu e-mail, seu fuso horário e a observação que você escrever. Eles servem só para marcar a reunião e avisar você e {dono}.",
     calendar: "A agenda do Google de {dono} é consultada apenas para mostrar os horários livres. Nada dela é guardado.",
-    retention: "Seus dados ficam guardados por 24 meses depois da reunião. Depois disso, são anonimizados.",
+    retention: "Seus dados ficam guardados por 24 meses depois da reunião. Depois disso, são anonimizados aqui. O convite também fica na agenda do Google de {dono}, que segue as regras do Google.",
     contact: "Para pedir a exclusão dos seus dados, escreva para",
     contactGeneric: "Para pedir a exclusão dos seus dados, escreva para a pessoa com quem você marcou a reunião.",
     ownerFallback: "a pessoa com quem você marcou",

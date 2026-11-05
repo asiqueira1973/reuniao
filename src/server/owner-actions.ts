@@ -110,6 +110,8 @@ export async function resendNotification(contaId: string, notificationId: string
 
   if (n.tipo === "aviso_dono_nova") {
     // O aviso ao dono não leva link de gestão: é remontado sem trocar o token do convidado.
+    // Reunião que já não está confirmada (cancelada, remarcada): o aviso perdeu o sentido.
+    if (r.status !== "confirmada") throw new OwnerActionError("transicao_invalida");
     return redeliver(n, {
       to: conta.email, replyTo: r.email_convidado, fromName: conta.nome_exibicao,
       email: newBookingToOwner({

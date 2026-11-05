@@ -62,7 +62,7 @@ Enums:
 | Tela | Rotas | Tabelas |
 |---|---|---|
 | `/entrar` | `GET /api/auth/google` → Google → `GET /api/auth/google/callback` | `ag_contas`, `ag_conexoes_google` (+ faixas e tipo padrão na conta nova) |
-| `/painel/tipos`, `/novo`, `/[id]` | `GET/POST /api/painel/tipos`, `PATCH/DELETE /api/painel/tipos/[id]`, `PUT /api/painel/tipos/ordem` | `ag_tipos_evento` |
+| `/painel/tipos`, `/novo`, `/[id]` | `GET/POST /api/painel/tipos`, `PATCH/DELETE /api/painel/tipos/[id]`, `POST /api/painel/tipos/ordem` | `ag_tipos_evento` |
 | `/painel/disponibilidade` | `PUT /api/painel/disponibilidade/semanal`, `PUT/DELETE …/datas`, `PUT …/feriados` | `ag_horarios_semanais`, `ag_excecoes_data`, `ag_contas` (feriados) |
 | `/painel/reunioes`, `/[id]` | `GET /api/painel/reunioes`, `GET …/[id]`, `POST …/[id]/cancelar`, `POST /api/painel/notificacoes/[id]/reenviar` | `ag_reservas`, `ag_notificacoes` (+ Google, Resend) |
 | `/painel/conta` | `GET/PATCH/DELETE /api/painel/conta`, `GET …/slug-disponivel` | `ag_contas`, `ag_conexoes_google` (+ revoke no Google) |
@@ -71,7 +71,7 @@ Enums:
 | `/{slug}/{tipo}/confirmado` | — (cookie curto `ag_confirmacao`) | `ag_reservas` |
 | `/r/{token}`, `/r/{token}/remarcar` | `GET /api/reservas/gestao`, `POST …/cancelar`, `POST …/remarcar`, `GET /api/disponibilidade?remarcar=` | `ag_reservas`, `ag_notificacoes` (+ Google, Resend) |
 | `/privacidade?de={slug}` | — | `ag_contas` (nome e e-mail de contato) |
-| (cron) | `GET /api/cron/diario` (Bearer `CRON_SECRET`) | `ag_reservas`, `ag_notificacoes` |
+| (cron) | `GET /api/cron/diario` (Bearer `CRON_SECRET`) | `ag_reservas`, `ag_notificacoes`; lê `ag_contas` e `ag_conexoes_google` (+ Google delete/patch, Resend) |
 
 O `src/proxy.ts` protege `/painel/*` (sessão no cookie `ag_sessao`, renovada após 7 dias) e devolve 404 real para `/{slug}` e `/{slug}/{tipo}` inexistentes.
 
@@ -81,15 +81,15 @@ O `src/proxy.ts` protege `/painel/*` (sessão no cookie `ag_sessao`, renovada ap
 
 **Horários livres (8.4).** `computeSlots` (puro, `src/features/availability/compute.ts`) cruza faixas da semana (ou exceção da data), feriados ativos, antecedência, janela, passo, intervalos e os ocupados (freebusy do Google + reservas ativas). Google fora ou conexão revogada → nenhum horário e a mensagem da seção 15 (nunca oferece horário sem consultar o Google). Pedido limitado a 42 dias.
 
-**Marcar (8.5).** `createBooking`: valida o horário de novo no servidor, aplica o limite por e-mail, grava `processando` (a constraint de sobreposição barra corrida → "Esse horário acabou de ser reservado."), cria o evento no Google com id previsível (`ag` + uuid) e Meet, passa a `confirmada` e manda os dois e-mails depois da resposta. Falha do Google → `falhou` e "Não consegui criar a reunião. Nada foi marcado.". Honeypot recusa robôs.
+**Marcar (8.5).** `createBooking`: valida o horário de novo no servidor, aplica o limite por e-mail, grava `processando` (a constraint de sobreposição barra corrida → "Esse horário acabou de ser reservado."), cria o evento no Google com id previsível (`ag` + uuid) e Meet, passa a `confirmada` e manda os dois e-mails antes de responder (falha de e-mail não desfaz a reserva: fica `falhou` em `ag_notificacoes` para reenvio). Falha do Google → `falhou` e "Não consegui criar a reunião. Nada foi marcado.". Honeypot recusa robôs.
 
 **Gerenciar pelo convidado (8.6).** O link `/r/{token}` vale pelo SHA-256 do token. Cancelar: toma a reserva no banco (condicional, para não correr com remarcação), apaga o evento (`sendUpdates=all`); Google com erro → volta a `confirmada` e 503. Remarcar: `ag_fn_remarcar_reservar` → patch do mesmo evento → confirma; falha → `ag_fn_desfaz_remarcacao`. Mesmo horário → 422.
 
-**Reuniões do dono (8.7).** Abas Próximas/Passadas/Canceladas (50 por página, desempate por id). Cancelar com motivo (mesma ordem segura do convidado) e e-mail ao convidado com link para marcar de novo. Reenviar e-mail: só `falhou` com < 5 tentativas; a confirmação ao convidado sai com link novo (o Google é atualizado antes de gravar o token novo); os demais são remontados sem mexer no token.
+**Reuniões do dono (8.7).** Abas Próximas/Passadas/Canceladas (50 por página, desempate por id). Cancelar com motivo (mesma ordem segura do convidado) e e-mail ao convidado com link para marcar de novo. Reenviar e-mail: o que não está `enviada` e tem < 5 tentativas (o botão aparece só para `falhou`); confirmação e aviso de reserva nova só de reunião confirmada; a confirmação ao convidado sai com link novo (o Google é atualizado antes de gravar o token novo); os demais são remontados sem mexer no token.
 
 **Conta (8.8).** Nome, endereço (checagem ao digitar, confirmação "Links antigos deixam de funcionar. Continuar?"; os links `/r/` não dependem do slug), mensagem, fuso (só nomes IANA). Faixa laranja no painel quando a conexão está revogada. Excluir: digitar o endereço → revoga o token no Google → apaga a conta em cascata → apaga o cookie. Eventos já criados no Google ficam.
 
-**Faxina diária (8.9).** `src/server/cron.ts`, 09:00 UTC: (1) `processando` há mais de 10 min → `falhou`, apagando o evento que possa ter sido criado (remarcação presa só vai para o log `remarcacao_presa`); (2) reenvia `falhou` e `pendente` antigos com < 5 tentativas de reuniões que não terminaram, com as mesmas regras do botão Reenviar; (3) anonimiza reservas com fim há mais de 24 meses. Rodar duas vezes seguidas não manda e-mail duplicado.
+**Faxina diária (8.9).** `src/server/cron.ts`, 09:00 UTC: (1) `processando` há mais de 10 min → `falhou`, apagando o evento que possa ter sido criado (remarcação presa só vai para o log `remarcacao_presa`); (2) reenvia `falhou` e `pendente` antigos com < 5 tentativas de reuniões que não terminaram, com as mesmas regras do botão Reenviar (confirmação `pendente` nunca: o e-mail pode ter saído e o reenvio troca o token; uma tentativa por e-mail por rodada); (3) anonimiza reservas com fim há mais de 24 meses. O que já saiu nunca é reenviado. Nos testes, a faxina roda só nas contas de teste (`contaIds`).
 
 **Logs.** Só códigos curtos e ids (`evento_sem_meet`, `reverter_cancelamento_falhou`, `revogacao_falhou`, `faxina_falhou`…). Nunca e-mail, nome, observação, token ou URL `/r/…` (seção 20).
 
@@ -105,7 +105,9 @@ Detalhe em `plans/8.*.md`, seção "Divergências". Resumo:
 - Reserva remarcada mostra "O link novo está no e-mail de confirmação." em vez de link para a nova (o banco só guarda o hash). **Decisão pendente do Alexandre.**
 - Cancelamento grava o estado no banco antes do Google e volta a `confirmada` se o Google falhar; a tabela da seção 12 não prevê essa volta. **Emenda pendente.**
 - Durante a remarcação, o intervalo da própria reunião é tirado dos ocupados do freebusy (outro compromisso por cima dela não aparece como ocupado nesse momento).
-- Faxina: remarcação presa em `processando` não é desfeita automaticamente (estado do Google incerto); fica no log.
+- Faxina: remarcação presa em `processando` não é desfeita automaticamente (estado do Google incerto); fica no log `remarcacao_presa` todo dia e ocupa o horário novo até alguém resolver. **Decisão pendente.**
+- Faxina e idempotência: o que deu certo nunca é reenviado, mas um e-mail que falhar de novo seria tentado outra vez numa segunda rodada imediata (até 5); com o cron 1×/dia isso não acontece. Evitar de vez exigiria uma coluna de última tentativa (migration).
+- Anonimização: nome, e-mail e observação também ficam na descrição do evento no Google Agenda do dono, que o app não anonimiza (o texto de Privacidade avisa).
 - Página de privacidade em `/privacidade?de={slug}` (o spec não fixa a URL).
 - `DELETE /api/painel/conta` devolve `{ ok: true }`.
 - Textos fora da seção 15 marcados "a aprovar (8.6/8.7/8.8/8.9)" em `src/lib/copy.ts`.

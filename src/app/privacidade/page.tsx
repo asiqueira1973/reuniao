@@ -24,7 +24,7 @@ async function PrivacyContent({ searchParams }: { searchParams: PageProps<"/priv
     <>
       <p>{fill(t.collected, { dono })}</p>
       <p>{fill(t.calendar, { dono })}</p>
-      <p>{t.retention}</p>
+      <p>{fill(t.retention, { dono })}</p>
       <p>{contact ? <>{t.contact} <a href={`mailto:${contact.email}`}>{contact.email}</a>.</> : t.contactGeneric}</p>
       {slug && contact ? <p><Link href={`/${slug}`}>{t.back}</Link></p> : null}
     </>

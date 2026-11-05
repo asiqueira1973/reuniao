@@ -67,10 +67,10 @@ async function MeetingContent({ params }: { params: PageProps<"/painel/reunioes/
                   <span>
                     <span className={styles.noteFailed}>{n.status === "falhou" ? t.emailFailed : t.emailPending} </span>
                     {/* Só oferece o reenvio quando o servidor aceitaria (falhou, < 5 tentativas,
-                        confirmação só de reunião confirmada). */}
+                        confirmação e aviso de reserva nova só de reunião confirmada). */}
                     {n.status !== "falhou" ? null : n.tentativas >= MAX_ATTEMPTS ? (
                       <span className={styles.noteFailed}>{t.resendLimit}</span>
-                    ) : n.tipo === "confirmacao_convidado" && m.status !== "confirmada" ? null : (
+                    ) : (n.tipo === "confirmacao_convidado" || n.tipo === "aviso_dono_nova") && m.status !== "confirmada" ? null : (
                       <ResendButton id={n.id} />
                     )}
                   </span>

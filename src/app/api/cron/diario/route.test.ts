@@ -70,7 +70,8 @@ beforeEach(async () => {
 describe("GET /api/cron/diario (rota)", () => {
   it("sem o segredo certo → 401 sem rodar a faxina; com ele → 200 com as contagens", async () => {
     const run = vi.mocked(cronModule.runDailyCleanup);
-    run.mockReset().mockResolvedValue({ reenviados: 2, falhados: 1, anonimizados: 3 });
+    run.mockClear();
+    run.mockResolvedValueOnce({ reenviados: 2, falhados: 1, anonimizados: 3 });
     expect((await GET(request(null))).status).toBe(401);
     expect((await GET(request("errado"))).status).toBe(401);
     const saved = process.env.CRON_SECRET;
