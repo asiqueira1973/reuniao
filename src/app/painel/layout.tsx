@@ -19,6 +19,7 @@ async function PanelShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Casca do painel: menu + conteúdo, com a sessão lida em streaming.
 export default function PainelLayout({ children }: LayoutProps<"/painel">) {
   return (
     <div className={styles.shell}>

@@ -22,6 +22,7 @@ async function readId(ctx: RouteContext<"/api/painel/tipos/[id]">): Promise<stri
   return z.uuid().safeParse(id).success ? id : null;
 }
 
+// GET: um tipo da conta, ou 404.
 export async function GET(req: NextRequest, ctx: RouteContext<"/api/painel/tipos/[id]">) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/painel/tipos
   return tipo ? Response.json({ tipo }) : apiError("nao_encontrado", 404);
 }
 
+// PATCH: muda só os campos enviados; corpo vazio devolve o tipo como está.
 export async function PATCH(req: NextRequest, ctx: RouteContext<"/api/painel/tipos/[id]">) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;
@@ -44,6 +46,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext<"/api/painel/tip
   }
 }
 
+// DELETE: soft delete (7.4); responde 204.
 export async function DELETE(req: NextRequest, ctx: RouteContext<"/api/painel/tipos/[id]">) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;

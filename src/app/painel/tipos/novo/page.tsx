@@ -13,6 +13,7 @@ async function NewTypeForm() {
   return <EventTypeForm id={null} initial={NEW_TYPE_DEFAULTS} siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? ""} accountSlug={account.slug} />;
 }
 
+// Página: link de volta, título "Novo tipo" e o editor.
 export default function NewEventTypePage() {
   return (
     <>

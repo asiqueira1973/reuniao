@@ -6,12 +6,14 @@ import { requireConta } from "@/server/auth/require-conta";
 import { createEventType, EventTypeError, listEventTypes } from "@/server/db/event-types";
 import { apiError, parseBody } from "@/server/http";
 
+// GET: tipos não excluídos da conta, na ordem do painel.
 export async function GET(req: NextRequest) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;
   return Response.json({ tipos: await listEventTypes(account.id) });
 }
 
+// POST: cria um tipo; só nome é obrigatório (critério 8.2).
 export async function POST(req: NextRequest) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;

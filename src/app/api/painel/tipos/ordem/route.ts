@@ -6,6 +6,7 @@ import { requireConta } from "@/server/auth/require-conta";
 import { reorderEventTypes } from "@/server/db/event-types";
 import { parseBody } from "@/server/http";
 
+// POST: grava ordem = posição de cada id na lista recebida.
 export async function POST(req: NextRequest) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;

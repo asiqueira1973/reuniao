@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { seedCalendlyTypes } from "../src/features/event-types/calendly-seed";
 import { isReservedAccountSlug, isValidSlug } from "../src/lib/slug";
 
+// Lê os argumentos, confere a conta, troca o slug (se pedido) e roda o seed.
 async function main() {
   const args = process.argv.slice(2);
   const email = args.find((a) => !a.startsWith("--"))?.toLowerCase();

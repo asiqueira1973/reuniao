@@ -17,14 +17,20 @@ async function EventTypesContent() {
   if (!account) redirect("/entrar");
   const types = await listEventTypes(account.id);
   return (
-    <EventTypeList
+    <>
+      <p className={styles.pageSubtitle}>
+        <a href={`/${account.slug}`} target="_blank" rel="noreferrer">{copy.nav.viewMyPage}</a>
+      </p>
+      <EventTypeList
       initial={types.map(({ id, nome, slug, duracao_min, com_meet, visivel_na_pagina, ativo }) => ({ id, nome, slug, duracao_min, com_meet, visivel_na_pagina, ativo }))}
       siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? ""}
       accountSlug={account.slug}
-    />
+      />
+    </>
   );
 }
 
+// Página: título, botão "Novo tipo" e a lista (que carrega em streaming).
 export default function EventTypesPage() {
   return (
     <>

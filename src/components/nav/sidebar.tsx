@@ -99,6 +99,7 @@ function SidebarWithPath(props: Props) {
   return <SidebarView {...props} activeHref={activeHrefFor(pathname)} />;
 }
 
+// Menu do painel com o item ativo da rota atual (fallback sem item ativo).
 export function Sidebar(props: Props) {
   return (
     <Suspense fallback={<SidebarView {...props} activeHref={null} />}>

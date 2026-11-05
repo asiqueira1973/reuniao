@@ -82,6 +82,12 @@ export async function createEventType(contaId: string, input: CreateEventTypeInp
 
 // Atualiza campos de um tipo da conta. Devolve o tipo atualizado ou lança nao_encontrado.
 export async function updateEventType(contaId: string, id: string, patch: PatchEventTypeInput): Promise<EventType> {
+  // Sem campos para mudar, o PostgREST não devolve a linha: só confere que o tipo é da conta.
+  if (Object.keys(patch).length === 0) {
+    const current = await getEventType(contaId, id);
+    if (!current) throw new EventTypeError("nao_encontrado");
+    return current;
+  }
   const { data, error } = await db()
     .from("ag_tipos_evento")
     .update(patch)

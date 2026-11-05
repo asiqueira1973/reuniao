@@ -60,6 +60,7 @@ function CopyLinkButton({ url }: { url: string }) {
   );
 }
 
+// Lista interativa: recebe os tipos do servidor e cuida de copiar link e reordenar.
 export function EventTypeList({ initial, siteUrl, accountSlug }: Props) {
   const router = useRouter();
   const [items, setItems] = useState(initial);

@@ -34,6 +34,7 @@ async function EditTypeContent({ params }: { params: PageProps<"/painel/tipos/[i
   );
 }
 
+// Página: link de volta e o editor do tipo (carrega em streaming).
 export default function EditEventTypePage({ params }: PageProps<"/painel/tipos/[id]">) {
   return (
     <>

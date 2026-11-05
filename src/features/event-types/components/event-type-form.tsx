@@ -45,6 +45,7 @@ function withCurrent(options: readonly number[], current: number): number[] {
   return [...new Set([...options, current])].sort((a, b) => a - b);
 }
 
+// Formulário do editor: novo (id null) ou edição de um tipo existente.
 export function EventTypeForm({ id, initial, siteUrl, accountSlug }: Props) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
@@ -75,6 +76,7 @@ export function EventTypeForm({ id, initial, siteUrl, accountSlug }: Props) {
     ) as Partial<EventTypeValues>;
   }
 
+  // Salva: POST no tipo novo (volta para a lista) ou PATCH na edição (mostra "Salvo.").
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -102,6 +104,7 @@ export function EventTypeForm({ id, initial, siteUrl, accountSlug }: Props) {
     router.refresh();
   }
 
+  // Exclui depois da confirmação e volta para a lista.
   async function onDelete() {
     if (!id) return;
     setSaving(true);
@@ -132,7 +135,7 @@ export function EventTypeForm({ id, initial, siteUrl, accountSlug }: Props) {
           <span className={styles.inline}>
             <input className={styles.input} type="number" inputMode="numeric" min={15} max={240} step={5} value={values.duracao_min}
               onChange={(e) => set("duracao_min", Number(e.target.value))} />
-            <span>{copy.eventTypeForm.units.minutes}</span>
+            <span>{copy.units.minutes}</span>
           </span>
         </label>
         <label className={styles.field}>
@@ -171,7 +174,7 @@ export function EventTypeForm({ id, initial, siteUrl, accountSlug }: Props) {
             <span className={styles.inline}>
               <input className={styles.input} type="number" inputMode="numeric" min={1} max={365} value={values.janela_dias}
                 onChange={(e) => set("janela_dias", Number(e.target.value))} />
-              <span>{copy.eventTypeForm.units.days}</span>
+              <span>{copy.units.days}</span>
             </span>
           </label>
           <label className={styles.field}>

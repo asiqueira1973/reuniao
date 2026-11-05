@@ -13,6 +13,8 @@ export const copy = {
     },
     retry: "Tentar de novo",
   },
+  // Unidades de tempo usadas pelos formatadores de src/lib/format.ts.
+  units: { minutes: "min", hours: "h", day: "dia", days: "dias" },
   nav: {
     groups: { agenda: "Agenda", configurar: "Configurar" },
     eventTypes: "Tipos de evento",
@@ -21,6 +23,7 @@ export const copy = {
     account: "Conta",
     signOut: "Sair",
     viewMyPage: "Ver minha página",
+    // a aprovar (rótulos de acessibilidade)
     openMenu: "Abrir menu",
     closeMenu: "Fechar menu",
   },
@@ -35,6 +38,7 @@ export const copy = {
     meet: "Google Meet",
     hidden: "Oculto",
     inactive: "Inativo",
+    // a aprovar (rótulos de acessibilidade)
     moveUp: "Mover para cima",
     moveDown: "Mover para baixo",
     dragHandle: "Arrastar para reordenar",
@@ -56,10 +60,9 @@ export const copy = {
       visivel_na_pagina: "Mostrar na minha página",
       ativo: "Ativo",
     },
-    units: { minutes: "min", hours: "h", days: "dias" },
     save: "Salvar",
     delete: "Excluir",
-    cancel: "Cancelar",
+    cancel: "Cancelar", // a aprovar
     back: "Tipos de evento",
     // a aprovar (não estão na seção 15)
     saved: "Salvo.",
