@@ -1,6 +1,6 @@
 // GET /api/disponibilidade?conta=&tipo=&de=&ate= — horários livres de um tipo (seção 13, épico 8.4).
-// Público (convidado). de/ate são datas AAAA-MM-DD no fuso da conta, no máximo 42 dias; sem eles,
-// vale a janela inteira do tipo. Respostas: 200 { fuso_conta, dias: [{ data, horarios: [iso] }] };
+// Público (convidado). de/ate são obrigatórios: datas AAAA-MM-DD no fuso da conta, de ≤ ate, no
+// máximo 42 dias (seção 13). Respostas: 200 { fuso_conta, dias: [{ data, horarios: [iso] }] };
 // 404 nao_encontrado / tipo_indisponivel; 422 dados_invalidos; 503 servico_indisponivel /
 // agenda_indisponivel (princípio 2: nenhum horário quando a agenda não pôde ser conferida).
 import type { NextRequest } from "next/server";
@@ -16,10 +16,10 @@ const querySchema = z
   .object({
     conta: z.string().min(1).max(30),
     tipo: z.string().min(1).max(30),
-    de: z.iso.date().optional(),
-    ate: z.iso.date().optional(),
+    de: z.iso.date(),
+    ate: z.iso.date(),
   })
-  .refine((q) => !q.de || !q.ate || (q.de <= q.ate && q.ate < addDays(q.de, MAX_SPAN_DAYS)));
+  .refine((q) => q.de <= q.ate && q.ate < addDays(q.de, MAX_SPAN_DAYS));
 
 // GET: valida a consulta e devolve os dias com horários livres.
 export async function GET(req: NextRequest) {

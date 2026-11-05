@@ -14,6 +14,8 @@ const calendar = await import("@/server/google/calendar");
 const { GET } = await import("./route");
 
 let conta: Awaited<ReturnType<typeof createTestAccount>>;
+// Intervalo padrão das consultas (dentro da janela, a partir de amanhã).
+const R = "de=2026-11-09&ate=2026-11-20";
 let tipoId: string;
 
 beforeAll(async () => {
@@ -79,24 +81,32 @@ describe("GET /api/disponibilidade", () => {
   });
   it("Google com erro ou lento → 503 servico_indisponivel, sem horários", async () => {
     vi.mocked(calendar.queryFreeBusy).mockRejectedValue(new calendar.CalendarError("servico_indisponivel"));
-    expect(await get(`conta=${conta.slug}&tipo=reuniao-1h`)).toEqual({ status: 503, body: { erro: "servico_indisponivel" } });
+    expect(await get(`conta=${conta.slug}&tipo=reuniao-1h&${R}`)).toEqual({ status: 503, body: { erro: "servico_indisponivel" } });
   });
   it("conexão revogada → 503 agenda_indisponivel sem chamar o Google", async () => {
     await db().from("ag_conexoes_google").update({ status: "revogada" }).eq("conta_id", conta.id);
-    expect(await get(`conta=${conta.slug}&tipo=reuniao-1h`)).toEqual({ status: 503, body: { erro: "agenda_indisponivel" } });
+    expect(await get(`conta=${conta.slug}&tipo=reuniao-1h&${R}`)).toEqual({ status: 503, body: { erro: "agenda_indisponivel" } });
     expect(calendar.queryFreeBusy).not.toHaveBeenCalled();
     await db().from("ag_conexoes_google").update({ status: "ativa" }).eq("conta_id", conta.id);
   });
   it("conta ou tipo inexistente → 404; tipo inativo → 404 tipo_indisponivel", async () => {
-    expect((await get(`conta=nao-existe-xyz&tipo=reuniao-1h`)).body).toEqual({ erro: "nao_encontrado" });
-    expect((await get(`conta=${conta.slug}&tipo=nada`)).status).toBe(404);
-    expect(await get(`conta=${conta.slug}&tipo=pausado`)).toEqual({ status: 404, body: { erro: "tipo_indisponivel" } });
+    expect((await get(`conta=nao-existe-xyz&tipo=reuniao-1h&${R}`)).body).toEqual({ erro: "nao_encontrado" });
+    expect((await get(`conta=${conta.slug}&tipo=nada&${R}`)).status).toBe(404);
+    expect(await get(`conta=${conta.slug}&tipo=pausado&${R}`)).toEqual({ status: 404, body: { erro: "tipo_indisponivel" } });
+  });
+  it("tipo excluído (soft delete) → 404 nao_encontrado", async () => {
+    await db().from("ag_tipos_evento").insert({ conta_id: conta.id, nome: "Antigo", slug: "antigo", excluido_em: new Date().toISOString() });
+    expect(await get(`conta=${conta.slug}&tipo=antigo&${R}`)).toEqual({ status: 404, body: { erro: "nao_encontrado" } });
   });
   it("datas inválidas, invertidas, intervalo de mais de 42 dias ou sem conta → 422", async () => {
     for (const q of ["de=2026-13-01&ate=2026-12-01", "de=2026-11-20&ate=2026-11-10", "de=2026-11-09&ate=2026-12-21"]) {
       expect((await get(`conta=${conta.slug}&tipo=reuniao-1h&${q}`)).status).toBe(422);
     }
-    expect((await get("tipo=reuniao-1h")).status).toBe(422);
+    expect((await get(`tipo=reuniao-1h&${R}`)).status).toBe(422);
+    // de e ate são obrigatórios: sem um deles o limite de 42 dias não poderia ser garantido.
+    expect((await get(`conta=${conta.slug}&tipo=reuniao-1h`)).status).toBe(422);
+    expect((await get(`conta=${conta.slug}&tipo=reuniao-1h&de=2026-11-09`)).status).toBe(422);
+    expect((await get(`conta=${conta.slug}&tipo=reuniao-1h&ate=2026-11-09`)).status).toBe(422);
     expect((await get(`conta=${conta.slug}&tipo=reuniao-1h&de=2026-11-09&ate=2026-12-20`)).status).toBe(200);
   });
   it("pedido fora da janela do tipo não consulta o Google", async () => {

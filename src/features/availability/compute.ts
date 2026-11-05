@@ -56,6 +56,8 @@ export function computeSlots(input: SlotsInput): DaySlots[] {
   const last = input.to && input.to < lastDay ? input.to : lastDay;
   const earliest = input.now.getTime() + t.antecedencia_min * MIN;
   const busy = input.busy.map((b) => [Date.parse(b.inicio), Date.parse(b.fim)] as const);
+  // Princípio 2: um ocupado ilegível poderia esconder um compromisso; na dúvida, nenhum horário.
+  if (busy.some(([bs, be]) => Number.isNaN(bs) || Number.isNaN(be))) return [];
 
   const days: DaySlots[] = [];
   for (let date = first; date <= last; date = addDays(date, 1)) {

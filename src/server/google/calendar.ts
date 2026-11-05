@@ -122,9 +122,13 @@ export async function queryFreeBusy(
       continue;
     }
     if (!res.ok) continue;
-    const body = (await res.json()) as {
-      calendars?: { primary?: { busy?: { start: string; end: string }[]; errors?: unknown[] } };
-    };
+    let body: { calendars?: { primary?: { busy?: { start: string; end: string }[]; errors?: unknown[] } } };
+    try {
+      body = await res.json();
+    } catch {
+      // Corpo ilegível ou cortado pelo timeout: tenta de novo e, no fim, servico_indisponivel.
+      continue;
+    }
     const primary = body.calendars?.primary;
     if (!primary || primary.errors?.length) continue;
     return (primary.busy ?? []).map((b) => ({ inicio: b.start, fim: b.end }));
