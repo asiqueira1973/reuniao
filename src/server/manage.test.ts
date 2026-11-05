@@ -109,7 +109,42 @@ describe("cancelByGuest", () => {
   });
 });
 
+describe("corrida cancelar × remarcar (verifier 8.6)", () => {
+  it("remarcar enquanto o cancelamento fala com o Google → transicao_invalida, sem patch", async () => {
+    const r = await booked();
+    let rescheduleResult: unknown = null;
+    vi.mocked(events.deleteEvent).mockImplementation(async () => {
+      rescheduleResult = await rescheduleByGuest(r.token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo").catch((e) => e);
+    });
+    await cancelByGuest(r.token, null);
+    expect(rescheduleResult).toMatchObject({ code: "transicao_invalida" });
+    expect(events.patchEvent).not.toHaveBeenCalled();
+    expect((await row(r.id)).status).toBe("cancelada_convidado");
+  });
+});
+
 describe("rescheduleByGuest (seção 12)", () => {
+  it("remarcar para o mesmo horário é recusado", async () => {
+    const r = await booked();
+    await expect(rescheduleByGuest(r.token, SLOT, "America/Sao_Paulo")).rejects.toMatchObject({ code: "dados_invalidos" });
+    expect((await row(r.id)).status).toBe("confirmada");
+  });
+  it("patch falha e alguém pegou o horário antigo nesse meio-tempo → 'perdida': dono avisado", async () => {
+    const r = await booked();
+    vi.mocked(events.patchEvent).mockImplementation(async () => {
+      // O horário antigo ficou livre (antiga 'remarcada'): outra reserva o ocupa antes do desfazer.
+      const tipoId = (await row(r.id)).tipo_evento_id;
+      await db().from("ag_reservas").insert({
+        conta_id: conta.id, tipo_evento_id: tipoId, inicio: SLOT, fim: "2026-11-10T18:30:00.000Z", nome_convidado: "Bia",
+        email_convidado: "bia@teste.dev", fuso_convidado: "America/Sao_Paulo", status: "confirmada", token_hash: `outra-${r.id}`,
+      });
+      throw new calendar.CalendarError("servico_indisponivel");
+    });
+    await expect(rescheduleByGuest(r.token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "servico_indisponivel" });
+    expect((await row(r.id)).status).toBe("remarcada");
+    const mail = vi.mocked(resend.sendEmail).mock.calls.map(([m]) => m).find((m) => m.to === `${conta.slug}@teste.dev`);
+    expect(mail?.subject).toBe("Cancelada: Ana Teste · 10/11 14:30");
+  });
   it("remarca: nova reserva, patch no mesmo evento com link novo, antiga remarcada, e-mails", async () => {
     const r = await booked();
     const NEW = "2026-11-11T18:00:00.000Z"; // qua 15:00
