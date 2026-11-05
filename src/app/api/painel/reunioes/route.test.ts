@@ -20,6 +20,7 @@ const calendar = await import("@/server/google/calendar");
 const events = await import("@/server/google/events");
 const resend = await import("@/server/email/resend");
 const { createBooking } = await import("@/server/booking");
+const { requireReservaPorToken } = await import("@/server/auth/require-reserva");
 const { cancelByGuest } = await import("@/server/manage");
 const { GET: list } = await import("./route");
 const { GET: detail } = await import("./[id]/route");
@@ -155,6 +156,48 @@ describe("POST /api/painel/notificacoes/[id]/reenviar", () => {
     const res = await resendRoute(apiRequest(`/api/painel/notificacoes/${n!.id}/reenviar`, { method: "POST", cookie: a.cookie }), routeCtx({ id: n!.id }));
     expect(await res.json()).toEqual({ status: "enviada" });
     expect(vi.mocked(resend.sendEmail).mock.calls[0][0].text).toContain("Viagem");
+  });
+});
+
+describe("reenvio sem estragar o link do convidado (verifier 8.7)", () => {
+  // Reenvia uma notificação da reserva pelo tipo.
+  async function resendByType(reservaId: string, tipo: string) {
+    const { data: n } = await db().from("ag_notificacoes").select("id").eq("reserva_id", reservaId).eq("tipo", tipo).single();
+    return resendRoute(apiRequest(`/api/painel/notificacoes/${n!.id}/reenviar`, { method: "POST", cookie: a.cookie }), routeCtx({ id: n!.id }));
+  }
+
+  it("só o aviso ao dono falhou: reenviar não troca o token nem mexe no evento", async () => {
+    // Confirmação ao convidado sai; o aviso ao dono falha.
+    vi.mocked(resend.sendEmail).mockImplementation(async (m) => {
+      if (m.to !== "ana@teste.dev") throw new Error("resend_500");
+      return "ok";
+    });
+    const r = await book(a, "2026-11-10T17:30:00.000Z");
+    vi.mocked(resend.sendEmail).mockReset().mockResolvedValue("ok");
+    vi.mocked(events.patchEvent).mockClear();
+    const res = await resendByType(r.id, "aviso_dono_nova");
+    expect(await res.json()).toEqual({ status: "enviada" });
+    expect(await requireReservaPorToken(r.token)).not.toBeNull();
+    expect(events.patchEvent).not.toHaveBeenCalled();
+    expect(vi.mocked(resend.sendEmail).mock.calls).toHaveLength(1);
+    expect(vi.mocked(resend.sendEmail).mock.calls[0][0].to).toBe(`${a.slug}@teste.dev`);
+  });
+
+  it("confirmação com o Google fora: 503 e o link antigo continua valendo", async () => {
+    vi.mocked(resend.sendEmail).mockRejectedValue(new Error("resend_500"));
+    const r = await book(a, "2026-11-10T17:30:00.000Z");
+    vi.mocked(resend.sendEmail).mockReset().mockResolvedValue("ok");
+    vi.mocked(events.patchEvent).mockRejectedValueOnce(new calendar.CalendarError("servico_indisponivel"));
+    const res = await resendByType(r.id, "confirmacao_convidado");
+    expect(res.status).toBe(503);
+    expect(await requireReservaPorToken(r.token)).not.toBeNull();
+  });
+
+  it("aviso de reconexão com a conexão já ativa → 409", async () => {
+    const { data: n } = await db().from("ag_notificacoes").insert({ conta_id: a.id, tipo: "reconectar_google", status: "falhou", tentativas: 1 }).select("id").single();
+    const res = await resendRoute(apiRequest(`/api/painel/notificacoes/${n!.id}/reenviar`, { method: "POST", cookie: a.cookie }), routeCtx({ id: n!.id }));
+    expect(res.status).toBe(409);
+    await db().from("ag_notificacoes").delete().eq("id", n!.id);
   });
 });
 
