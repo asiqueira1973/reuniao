@@ -201,3 +201,9 @@
 .manageDetails { margin: 0 0 24px; display: flex; flex-direction: column; gap: 6px; font-size: 16px; }
 .manageDetails span::first-letter { text-transform: uppercase; }
 .manageTitle { margin: 0 0 16px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; text-align: center; }
+
+/* Rodapé das páginas públicas (link Privacidade, seção 20) e texto corrido da página de privacidade. */
+.footer { background: var(--surface); padding: 0 16px 32px; text-align: center; font-size: 13px; }
+.footer a { color: var(--text-secondary); }
+.prose p { margin: 0 0 14px; font-size: 16px; line-height: 1.5; }
+.prose p:last-child { margin-bottom: 0; }

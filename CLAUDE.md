@@ -16,7 +16,7 @@ Bug: teste que reproduz → ver falhar → commit → `touch .claude/fix-mode` �
 - Next.js 16 (App Router, Cache Components, `proxy.ts`): ler `node_modules/next/dist/docs/` antes de usar API nova.
 
 ## Arquitetura (seção 4)
-Sem Supabase Auth: login = OAuth do Google próprio (`/api/auth/google`), que já conecta a agenda; sessão em cookie JWT (`jose`). Banco só pelo servidor (service role); RLS ligado **sem política** em todas as `ag_*`. Reserva: `POST /api/reservas` → revalida (11.3) → INSERT `processando` → Google `events.insert` com Meet → `confirmada` → Resend.
+Sem Supabase Auth: login = OAuth do Google próprio (`/api/auth/google`), que já conecta a agenda; sessão em cookie JWT (`jose`). Banco só pelo servidor (service role); RLS ligado **sem política** em todas as `ag_*`. Reserva: `POST /api/reservas` → revalida (11.3) → INSERT `processando` → Google `events.insert` com Meet → `confirmada` → Resend. Gestão do convidado: `/r/{token}` (só o SHA-256 no banco). Faxina: `vercel.json` → `GET /api/cron/diario` (Bearer `CRON_SECRET`) → `src/server/cron.ts` (processando > 10 min, reenvio de e-mails, anonimização 24 meses). Mapa completo em `DOCUMENTACAO-TECNICA.md`.
 
 ## Comandos (22.1)
 `npm run typecheck` · `npm run lint` · `npm test` (pgTAP no Supabase local + Vitest) · `npm run build` · `npm run verify` (os quatro).

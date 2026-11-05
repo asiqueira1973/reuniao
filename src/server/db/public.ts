@@ -113,3 +113,11 @@ export async function publicPathExists(accountSlug: string, typeSlug?: string): 
   if (e2) throw e2;
   return !!tipo;
 }
+
+// Contato de privacidade da página que o convidado está vendo (pergunta 25.3: o e-mail da
+// própria conta). Devolve nome e e-mail, ou null se o slug não existir.
+export async function getPrivacyContact(slug: string): Promise<{ nome_exibicao: string; email: string } | null> {
+  const { data, error } = await db().from("ag_contas").select("nome_exibicao, email").eq("slug", slug).maybeSingle();
+  if (error) throw error;
+  return data;
+}

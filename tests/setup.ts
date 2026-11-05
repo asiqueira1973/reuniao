@@ -23,6 +23,7 @@ process.env.GOOGLE_CLIENT_SECRET = "segredo-teste";
 process.env.TOKEN_ENC_KEY = randomBytes(32).toString("base64");
 process.env.SESSION_SECRET = randomBytes(32).toString("base64url");
 process.env.EMAILS_PERMITIDOS = "dono.permitido@teste.dev, outro@teste.dev";
+process.env.CRON_SECRET = randomBytes(24).toString("base64url");
 
 // Espera o Supabase local responder antes dos testes (até 60 s). Logo depois do `test:db`, a
 // primeira conexão do host com o Docker chega a levar ~20 s; sem isso o primeiro teste de rota

@@ -34,5 +34,26 @@ No primeiro login o Google mostra "O Google não verificou este app" → **Avan�
 
 No passo 3 (Branding), em **Domínios autorizados**, acrescente `reuniao.app.br`.
 
-## Resend e Vercel
-_A completar nos épicos 8.5 e 8.9._
+## Resend (e-mails)
+1. https://resend.com → **Domains → Add domain** → `reuniao.app.br`.
+2. No registro.br (DNS do domínio), crie os registros que o Resend mostrar: TXT de DKIM (`resend._domainkey`), MX e TXT de SPF em `send`, e um TXT `_dmarc` com `v=DMARC1; p=none;`. Não precisa ligar "Enable receiving".
+3. Espere o Resend marcar **Verified** e crie uma **API key** (Sending access) → `RESEND_API_KEY`. Remetente: `EMAIL_REMETENTE=agenda@reuniao.app.br`.
+
+## Deploy na Vercel
+1. https://vercel.com → **Add New → Project** → importe `asiqueira1973/minha-agenda` (framework Next.js, sem mudar comandos).
+2. **Settings → Environment Variables** (Production): copie do `.env.local` todas as variáveis de `.env.example`, trocando:
+   - `NEXT_PUBLIC_SITE_URL=https://reuniao.app.br`
+   - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` do projeto remoto (Supabase → Project Settings → API).
+   - `CRON_SECRET`: um segredo novo (`openssl rand -base64 32`); a Vercel manda `Authorization: Bearer <CRON_SECRET>` sozinha para o cron.
+3. **Deploy**. Depois, **Settings → Domains** → `reuniao.app.br` e siga as instruções de DNS no registro.br (registro A `76.76.21.21` ou o que a Vercel indicar; `www` como CNAME).
+4. O cron vem do `vercel.json` (`/api/cron/diario`, todo dia 09:00 UTC = 06:00 de Brasília). Confira em **Settings → Cron Jobs**.
+5. No Google Cloud (passo 6 acima), o redirect `https://reuniao.app.br/api/auth/google/callback` já precisa estar cadastrado.
+6. Entre em `https://reuniao.app.br/entrar` com o Google (o banco remoto é outro: a conta nasce de novo) e rode o seed apontando para o remoto:
+   `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run seed:calendly -- <email> --slug alexandre`
+
+## Checklist de entrega (seção 26)
+- [ ] Google Cloud em "Em produção", dois escopos de agenda, redirect de produção.
+- [ ] Resend com domínio verificado (SPF/DKIM/DMARC).
+- [ ] Vercel com domínio, variáveis e cron ativo.
+- [ ] Login em produção, reserva de teste com outro e-mail, cancelamento pelo link.
+- [ ] Documentação: `DOCUMENTACAO-TECNICA.md`, `CLAUDE.md`, este README.

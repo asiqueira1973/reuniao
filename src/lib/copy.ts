@@ -265,6 +265,18 @@ export const copy = {
     deleteTypeSlug: (slug: string) => `Para confirmar, digite ${slug}`,
     deleteButton: "Excluir conta",
   },
+  privacy: {
+    // Seção 20 (LGPD). Textos a aprovar (8.9).
+    title: "Privacidade",
+    link: "Privacidade",
+    collected: "Quando você marca uma reunião por esta página, guardo seu nome, seu e-mail, seu fuso horário e a observação que você escrever. Eles servem só para marcar a reunião e avisar você e {dono}.",
+    calendar: "A agenda do Google de {dono} é consultada apenas para mostrar os horários livres. Nada dela é guardado.",
+    retention: "Seus dados ficam guardados por 24 meses depois da reunião. Depois disso, são anonimizados.",
+    contact: "Para pedir a exclusão dos seus dados, escreva para",
+    contactGeneric: "Para pedir a exclusão dos seus dados, escreva para a pessoa com quem você marcou a reunião.",
+    ownerFallback: "a pessoa com quem você marcou",
+    back: "Voltar",
+  },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",
     slug_invalido: "Use de 3 a 30 letras minúsculas, números ou hífen.",
