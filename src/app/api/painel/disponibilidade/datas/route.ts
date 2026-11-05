@@ -6,9 +6,9 @@ import { requireConta } from "@/server/auth/require-conta";
 import { AvailabilityError, deleteDateOverride, replaceDateOverride } from "@/server/db/availability";
 import { apiError, parseBody } from "@/server/http";
 
-// Converte o erro de negócio em resposta (404 para data inexistente, 422 para o resto).
+// Converte o erro de negócio (faixa_sobreposta / excecao_conflitante) em 422 (seção 13).
 function toResponse(e: unknown): Response {
-  if (e instanceof AvailabilityError) return apiError(e.code, e.code === "nao_encontrado" ? 404 : 422);
+  if (e instanceof AvailabilityError) return apiError(e.code, 422);
   throw e;
 }
 
@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE: remove a data específica; volta a valer o horário semanal.
+// DELETE: remove a data específica; volta a valer o horário semanal. Responde 200 (seção 13).
 export async function DELETE(req: NextRequest) {
   const account = await requireConta(req);
   if (account instanceof Response) return account;
@@ -34,7 +34,7 @@ export async function DELETE(req: NextRequest) {
   if (body instanceof Response) return body;
   try {
     await deleteDateOverride(account.id, body.data);
-    return new Response(null, { status: 204 });
+    return new Response(null, { status: 200 });
   } catch (e) {
     return toResponse(e);
   }

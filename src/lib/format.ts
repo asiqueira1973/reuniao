@@ -25,7 +25,7 @@ export function formatMinutes(minutes: number): string {
   return formatDuration(minutes);
 }
 
-// Data civil "AAAA-MM-DD" por extenso (seção 17): "terça-feira, 4 de novembro". Ano só quando
+// Data civil "AAAA-MM-DD" por extenso (seção 17): "quarta-feira, 4 de novembro". Ano só quando
 // diferente do ano de referência. Usa UTC ao meio-dia para não trocar de dia por fuso.
 export function formatDateLong(date: string, referenceYear?: number): string {
   const d = new Date(`${date}T12:00:00Z`);

@@ -100,6 +100,7 @@ export const copy = {
       end: "Fim",
       invalid: "Confira os horários: o fim precisa ser depois do início.",
     },
+    // a aprovar (8.3)
     days: {
       short: ["D", "S", "T", "Q", "Q", "S", "S"],
       long: ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"],
@@ -129,7 +130,7 @@ export const copy = {
     dados_invalidos: "Confira os campos destacados.",
     generic: "Não consegui salvar agora. Tente de novo em instantes.",
     faixa_sobreposta: "Esses horários se sobrepõem.",
-    excecao_conflitante: "Esses horários se sobrepõem.",
+    excecao_conflitante: "Esses horários se sobrepõem.", // a aprovar (8.3)
   },
 } as const;
 

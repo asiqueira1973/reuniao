@@ -13,7 +13,7 @@ export type HolidayState = { feriados_ativos: boolean; feriados_desligados: stri
 
 // Erro de negócio que sobe do banco com MESSAGE = código (seção 7.5).
 export class AvailabilityError extends Error {
-  constructor(public readonly code: "faixa_sobreposta" | "excecao_conflitante" | "nao_encontrado") {
+  constructor(public readonly code: "faixa_sobreposta" | "excecao_conflitante") {
     super(code);
   }
 }
@@ -78,11 +78,11 @@ export async function replaceDateOverride(contaId: string, input: DateOverrideIn
   if (error) translate(error);
 }
 
-// Remove a data específica (volta a valer o horário semanal). Lança nao_encontrado se não havia.
+// Remove a data específica (volta a valer o horário semanal). Idempotente: data que não existe
+// na conta não muda nada (seção 13 responde 200 nos dois casos).
 export async function deleteDateOverride(contaId: string, date: string): Promise<void> {
-  const { data, error } = await db().from("ag_excecoes_data").delete().eq("conta_id", contaId).eq("data", date).select("id");
+  const { error } = await db().from("ag_excecoes_data").delete().eq("conta_id", contaId).eq("data", date);
   if (error) throw error;
-  if (!data.length) throw new AvailabilityError("nao_encontrado");
 }
 
 // Configuração de feriados e fuso da conta.

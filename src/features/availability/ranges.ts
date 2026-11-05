@@ -39,8 +39,10 @@ const LAST = 23 * 60 + 55;
 // Faixa sugerida ao tocar em "+": dia vazio → 09:00–17:00; senão uma hora começando uma hora
 // depois do fim da última faixa (limitada a 23:55). Devolve null se não couber mais nada.
 export function nextDefaultRange(ranges: TimeRange[]): TimeRange | null {
-  if (ranges.length === 0) return { inicio: "09:00", fim: "17:00" };
-  const lastEnd = Math.max(...ranges.map((r) => toMinutes(r.fim)));
+  // Faixa com campo apagado ou inválido não conta para a sugestão (evitaria NaN).
+  const valid = ranges.filter((r) => isValidTime(r.fim));
+  if (valid.length === 0) return { inicio: "09:00", fim: "17:00" };
+  const lastEnd = Math.max(...valid.map((r) => toMinutes(r.fim)));
   if (lastEnd >= LAST) return null;
   const start = Math.min(lastEnd + 60, LAST - 55);
   const begin = Math.max(start, lastEnd);

@@ -67,6 +67,7 @@ export function WeeklyEditor({ initial }: Props) {
   // Copia as faixas do dia de origem para os dias escolhidos (substitui as deles).
   function copyTo(from: number, days: number[]) {
     setSaved(false);
+    setError(null);
     setWeek((w) => ({ ...w, ...Object.fromEntries(days.map((d) => [d, w[from].map((r) => ({ ...r }))])) }));
   }
 

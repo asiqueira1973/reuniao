@@ -83,10 +83,12 @@ describe("/datas", () => {
     const { count } = await db().from("ag_excecoes_data").select("id", { count: "exact", head: true }).eq("conta_id", a.id).eq("data", "2030-03-01");
     expect(count).toBe(1);
   });
-  it("DELETE remove a data; data inexistente → 404; outra conta não apaga", async () => {
-    expect((await send(deleteDate, "/api/painel/disponibilidade/datas", "DELETE", { data: "2030-05-10" }, b.cookie)).status).toBe(404);
-    expect((await send(deleteDate, "/api/painel/disponibilidade/datas", "DELETE", { data: "2030-05-10" })).status).toBe(204);
-    expect((await send(deleteDate, "/api/painel/disponibilidade/datas", "DELETE", { data: "2030-05-10" })).status).toBe(404);
+  it("DELETE remove a data (200, seção 13); outra conta não apaga; repetir não é erro", async () => {
+    expect((await send(deleteDate, "/api/painel/disponibilidade/datas", "DELETE", { data: "2030-05-10" }, b.cookie)).status).toBe(200);
+    expect((await listDateOverrides(a.id, "2030-01-01")).map((d) => d.data)).toContain("2030-05-10");
+    expect((await send(deleteDate, "/api/painel/disponibilidade/datas", "DELETE", { data: "2030-05-10" })).status).toBe(200);
+    expect((await listDateOverrides(a.id, "2030-01-01")).map((d) => d.data)).not.toContain("2030-05-10");
+    expect((await send(deleteDate, "/api/painel/disponibilidade/datas", "DELETE", { data: "2030-05-10" })).status).toBe(200);
   });
 });
 

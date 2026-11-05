@@ -20,7 +20,8 @@ function rangesText(faixas: TimeRange[]): string {
   return faixas.map((f) => `${f.inicio} – ${f.fim}`).join(", ");
 }
 
-// Formulário de uma data (nova ou em edição).
+// Formulário de uma data (nova ou em edição). Na edição a data fica travada: mudar o dia criaria
+// uma segunda data em vez de mover (para mover, remova e adicione de novo).
 function DateForm({ initial, today, onDone, onCancel }: {
   initial: DateOverrideItem; today: string; onDone: () => void; onCancel: () => void;
 }) {
@@ -53,7 +54,8 @@ function DateForm({ initial, today, onDone, onCancel }: {
     <div className={styles.form}>
       <label className={styles.field}>
         {t.dates.date}
-        <input className={styles.dateInput} type="date" min={today} value={data} onChange={(e) => setData(e.target.value)} />
+        <input className={styles.dateInput} type="date" min={today} value={data} disabled={!!initial.data}
+          onChange={(e) => setData(e.target.value)} />
       </label>
       <label className={styles.radio}>
         <input type="radio" name="tipo" checked={tipo === "indisponivel"} onChange={() => setTipo("indisponivel")} />
