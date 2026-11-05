@@ -1,9 +1,9 @@
-# Prompt para o Claude Design — Minha Agenda
+# Prompt para o Claude Design — Reunião
 
 Cole o bloco abaixo no Claude Design.
 
 ```
-Desenhe todas as telas de "Minha Agenda" (nome de trabalho): um app web de agendamento pessoal, no estilo do Calendly, mas só com o básico. Um dono (Alexandre) configura os tipos de reunião e a disponibilidade; qualquer pessoa com o link escolhe um horário, sem criar conta. A reunião vai para o Google Agenda do dono com Google Meet.
+Desenhe todas as telas de "Reunião" (reuniao.app.br): um app web de agendamento pessoal, no estilo do Calendly, mas só com o básico. Um dono (Alexandre) configura os tipos de reunião e a disponibilidade; qualquer pessoa com o link escolhe um horário, sem criar conta. A reunião vai para o Google Agenda do dono com Google Meet.
 
 Gere cada tela em dois tamanhos (celular 375 px e desktop 1280 px), em modo claro e escuro.
 

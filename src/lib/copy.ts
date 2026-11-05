@@ -2,7 +2,7 @@
 // Cresce a cada épico; as chaves de erro espelham os códigos da seção 13.
 
 export const copy = {
-  appName: "Minha Agenda",
+  appName: "Reunião",
   login: {
     button: "Entrar com Google",
     errors: {

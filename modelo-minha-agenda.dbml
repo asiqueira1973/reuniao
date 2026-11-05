@@ -1,4 +1,4 @@
-// Minha Agenda — modelo de dados (spec.md v0.1, seção 7)
+// Reunião — modelo de dados (spec.md v0.1, seção 7)
 // Projeto Supabase compartilhado: todas as tabelas com prefixo ag_.
 // RLS ligado em todas as tabelas, sem nenhuma política; sem GRANT para anon/authenticated (seção 6).
 

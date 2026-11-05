@@ -1,12 +1,12 @@
-# Minha Agenda — Especificação (SDD)
+# Reunião — Especificação (SDD)
 
 | Campo | Valor |
 |---|---|
-| Versão | 0.3 (03/11/2026: domínio reuniao.app.br; 0.2: respostas da seção 25) |
+| Versão | 0.4 (04/11/2026: nome Reunião; 0.3: domínio reuniao.app.br; 0.2: respostas da seção 25) |
 | Responsável de produto | Alexandre Siqueira |
 | Status | aprovado para implementação |
 | Data | 03/11/2026 |
-| Nome do produto | **"Minha Agenda" é nome de trabalho** — nome e domínio definitivos na pergunta 25.1 |
+| Nome do produto | **Reunião** (domínio `reuniao.app.br`). "Minha Agenda" foi o nome de trabalho; continua só no nome da pasta e do repositório (`minha-agenda`) |
 
 ## Como usar este documento
 
@@ -916,7 +916,7 @@ O agente de código **para e pergunta** ao cruzar com qualquer item abaixo.
 
 | # | Pergunta | Quem decide | Até quando |
 |---|---|---|---|
-| 25.1 | ~~Nome do produto e domínio~~ **Respondida (03/11/2026):** domínio **`reuniao.app.br`** (comprado pelo Alexandre). Produção: `NEXT_PUBLIC_SITE_URL=https://reuniao.app.br`, remetente `agenda@reuniao.app.br` (domínio verificado no Resend), redirect do OAuth `https://reuniao.app.br/api/auth/google/callback`. Dev: `localhost:3020`, remetente de teste `onboarding@resend.dev`. **Continua aberto:** o nome exibido do produto (hoje "Minha Agenda", nome de trabalho) | Alexandre | antes do deploy (8.9) |
+| 25.1 | ~~Nome do produto e domínio~~ **Respondida (03/11/2026):** domínio **`reuniao.app.br`** (comprado pelo Alexandre). Produção: `NEXT_PUBLIC_SITE_URL=https://reuniao.app.br`, remetente `agenda@reuniao.app.br` (domínio verificado no Resend), redirect do OAuth `https://reuniao.app.br/api/auth/google/callback`. Dev: `localhost:3020`, remetente de teste `onboarding@resend.dev`. Nome exibido do produto: **Reunião** (04/11/2026) | — | — |
 | 25.2 | ~~Slug de cada conta~~ **Respondida:** Gmail pessoal → `alexandre`; BBZ → `alexandre-bbz`. O `seed:calendly` aceita `--slug` para gravar o endereço junto com os tipos | — | — |
 | 25.3 | ~~Contato de privacidade~~ **Respondida:** o e-mail da própria conta (`ag_contas.email`) da página que o convidado está vendo | — | — |
 
@@ -973,7 +973,7 @@ O agente de código **para e pergunta** ao cruzar com qualquer item abaixo.
 
 Modelo:
 ```
-O app Minha Agenda já está implementado e funcionando (spec.md v0.1, DOCUMENTACAO-TECNICA.md).
+O app Reunião já está implementado e funcionando (spec.md v0.1, DOCUMENTACAO-TECNICA.md).
 Quero mudar só isto: <descrição>.
 Não mexa em: <telas/rotas/tabelas que não devem mudar>.
 Entre em plan mode, me mostre o plano (arquivos, ordem, testes) e salve em plans/<feature>.md depois de aprovado.

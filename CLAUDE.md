@@ -1,8 +1,8 @@
 @AGENTS.md
 
-# CLAUDE.md — Minha Agenda
+# CLAUDE.md — Reunião (repositório minha-agenda)
 
-Fonte única de verdade: `spec.md` (v0.3). Planos aprovados: `plans/`. Princípios da seção 0 desempatam dúvidas; itens da seção 25 → **pare e pergunte**. O `DOCUMENTACAO-TECNICA.md` (a partir do fim da implementação) descreve o que está implementado; mudou schema, rota ou lógica de tela → atualize-o no mesmo commit, junto com este arquivo e o README quando couber.
+Fonte única de verdade: `spec.md` (v0.4). Planos aprovados: `plans/`. Princípios da seção 0 desempatam dúvidas; itens da seção 25 → **pare e pergunte**. O `DOCUMENTACAO-TECNICA.md` (a partir do fim da implementação) descreve o que está implementado; mudou schema, rota ou lógica de tela → atualize-o no mesmo commit, junto com este arquivo e o README quando couber.
 
 ## Regra de ouro
 Se um teste falhar, corrija o código, não o teste; nunca pule nem apague teste que falha.
