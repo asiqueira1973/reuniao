@@ -1,6 +1,6 @@
 // Textos oficiais do produto — seção 15 (conteúdo final, pt-BR). Nenhum texto de interface fora daqui.
 // Rótulos de navegação e de campos vêm das seções 10 e 16 e do prompt de design. Textos fora da
-// seção 15 aprovados pelo Alexandre em 04/11/2026 (8.2 e 8.3) ou marcados "a aprovar" (épicos seguintes).
+// seção 15 aprovados pelo Alexandre em 04/11/2026 (8.2, 8.3 e 8.5) ou marcados "a aprovar" (épicos seguintes).
 
 export const copy = {
   appName: "Reunião",
@@ -143,7 +143,6 @@ export const copy = {
     limit: "Você já tem reuniões marcadas comigo. Para marcar outra, cancele uma delas pelo link do e-mail.",
     notFound: "Página não encontrada.",
     meet: "Google Meet",
-    // a aprovar (8.5)
     back: "Voltar",
     previousMonth: "Mês anterior",
     joinMeet: "Entrar no Meet",
@@ -153,14 +152,13 @@ export const copy = {
     slotsMany: "{n} horários",
     noSlots: "sem horários",
   },
-  // E-mails (seção 15: assuntos; corpo a aprovar 8.5).
+  // E-mails (seção 15: assuntos; corpo aprovado em 05/11/2026).
   emails: {
     subjects: {
       confirmacao_convidado: "Confirmado: {tipo} com {dono} · {quando}",
       aviso_dono_nova: "Nova reunião: {convidado} · {quando}",
       reconectar_google: "Sua agenda foi desconectada",
     },
-    // a aprovar (8.5)
     confirmationIntro: "Sua reunião com {dono} está marcada.",
     ownerIntro: "{convidado} marcou uma reunião com você.",
     reschedule: "Remarcar",
