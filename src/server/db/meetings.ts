@@ -20,16 +20,16 @@ export type MeetingRow = {
 
 // Lista uma aba (50 por página). Próximas: confirmadas que ainda não terminaram, da mais cedo
 // para a mais tarde. Passadas: confirmadas já terminadas, da mais recente. Canceladas: as duas
-// formas de cancelamento, da mais recente.
+// formas de cancelamento, da mais recente. Desempate por id para a paginação não repetir linhas.
 export async function listMeetings(contaId: string, tab: MeetingTab, now: Date, page = 0): Promise<{ rows: MeetingRow[]; hasMore: boolean }> {
   let q = db()
     .from("ag_reservas")
     .select("id, inicio, fim, nome_convidado, email_convidado, status, ag_tipos_evento(nome)")
     .eq("conta_id", contaId);
   const nowIso = now.toISOString();
-  if (tab === "proximas") q = q.eq("status", "confirmada").gt("fim", nowIso).order("inicio", { ascending: true });
-  else if (tab === "passadas") q = q.eq("status", "confirmada").lte("fim", nowIso).order("inicio", { ascending: false });
-  else q = q.in("status", ["cancelada_convidado", "cancelada_dono"]).order("inicio", { ascending: false });
+  if (tab === "proximas") q = q.eq("status", "confirmada").gt("fim", nowIso).order("inicio", { ascending: true }).order("id");
+  else if (tab === "passadas") q = q.eq("status", "confirmada").lte("fim", nowIso).order("inicio", { ascending: false }).order("id");
+  else q = q.in("status", ["cancelada_convidado", "cancelada_dono"]).order("inicio", { ascending: false }).order("id");
   const { data, error } = await q.range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   if (error) throw error;
   const rows = data.slice(0, PAGE_SIZE).map((r) => ({

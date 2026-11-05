@@ -183,14 +183,16 @@ export async function resendBookingEmails(reservaId: string): Promise<Record<str
   if (error) throw error;
   if (r.status !== "confirmada" || !r.google_evento_id || !r.ag_contas || !r.ag_tipos_evento) throw new BookingError("nao_encontrado");
 
+  // Google primeiro: se o patch falhar (CalendarError), o token antigo continua valendo e o
+  // link que o convidado já tem não quebra (verifier 8.7).
   const { token, hash } = newManageToken();
-  const { error: e1 } = await db().from("ag_reservas").update({ token_hash: hash }).eq("id", r.id);
-  if (e1) throw e1;
   await patchEvent(r.conta_id, r.google_evento_id, {
     start: new Date(r.inicio).toISOString(),
     end: new Date(r.fim).toISOString(),
     description: eventDescription(r.nome_convidado, r.email_convidado, r.observacao, token),
   });
+  const { error: e1 } = await db().from("ag_reservas").update({ token_hash: hash }).eq("id", r.id);
+  if (e1) throw e1;
 
   const data = {
     contaId: r.conta_id,

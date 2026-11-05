@@ -1,10 +1,11 @@
 // Ações do dono sobre as reuniões — épico 8.7, regra 11.6 e seção 12.
-// cancelByOwner: cancela uma reunião confirmada e futura (Google primeiro; se o Google falhar,
-// nada muda). resendNotification: reenvia um e-mail que falhou, até 5 tentativas no total.
+// cancelByOwner: cancela uma reunião confirmada e futura (toma a reserva no banco, apaga no
+// Google; se o Google falhar, a reserva volta a confirmada). resendNotification: reenvia um e-mail
+// que falhou, até 5 tentativas no total.
 import "server-only";
 import { db } from "@/server/db/client";
-import { resendBookingEmails } from "@/server/booking";
-import { cancellationToGuest, cancelledToOwner, reconnectToOwner, rescheduledToOwner } from "@/server/email/templates";
+import { BookingError, resendBookingEmails } from "@/server/booking";
+import { cancellationToGuest, cancelledToOwner, newBookingToOwner, reconnectToOwner, rescheduledToOwner } from "@/server/email/templates";
 import { CalendarError } from "@/server/google/calendar";
 import { deleteEvent } from "@/server/google/events";
 import { MAX_ATTEMPTS, notifyReservation, redeliver } from "@/server/notifications";
@@ -24,7 +25,7 @@ const SITE = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
 async function loadReservation(contaId: string, id: string) {
   const { data, error } = await db()
     .from("ag_reservas")
-    .select("id, conta_id, inicio, fim, status, nome_convidado, email_convidado, fuso_convidado, google_evento_id, link_meet, motivo_cancelamento, remarcada_de_id, ag_tipos_evento(nome), ag_contas(slug, email, nome_exibicao, fuso)")
+    .select("id, conta_id, inicio, fim, status, nome_convidado, email_convidado, fuso_convidado, observacao, google_evento_id, link_meet, motivo_cancelamento, remarcada_de_id, ag_tipos_evento(nome), ag_contas(slug, email, nome_exibicao, fuso)")
     .eq("conta_id", contaId)
     .eq("id", id)
     .maybeSingle();
@@ -54,12 +55,15 @@ export async function cancelByOwner(contaId: string, id: string, motivo: string 
     try {
       await deleteEvent(contaId, r.google_evento_id);
     } catch (e) {
-      await db()
+      const { data: back, error: e3 } = await db()
         .from("ag_reservas")
         .update({ status: "confirmada", cancelada_em: null, motivo_cancelamento: null })
         .eq("conta_id", contaId)
         .eq("id", id)
-        .eq("status", "cancelada_dono");
+        .eq("status", "cancelada_dono")
+        .select("id");
+      // Só o id da reserva no log (seção 20): o evento continua no Google e o app a mostra cancelada.
+      if (e3 || !back?.length) console.error("reverter_cancelamento_falhou", { reservaId: id });
       if (e instanceof CalendarError) throw new OwnerActionError(e.code === "agenda_indisponivel" ? "agenda_indisponivel" : "servico_indisponivel");
       throw e;
     }
@@ -93,6 +97,9 @@ export async function resendNotification(contaId: string, notificationId: string
   if (n.tentativas >= MAX_ATTEMPTS) throw new OwnerActionError("limite_tentativas");
 
   if (n.tipo === "reconectar_google") {
+    // Conexão já reconectada: o aviso não faz mais sentido.
+    const { data: conexao } = await db().from("ag_conexoes_google").select("status").eq("conta_id", contaId).maybeSingle();
+    if (conexao?.status !== "revogada") throw new OwnerActionError("transicao_invalida");
     const { data: conta } = await db().from("ag_contas").select("email, nome_exibicao").eq("id", contaId).single();
     return redeliver(n, { to: conta!.email, fromName: conta!.nome_exibicao, email: reconnectToOwner(SITE()) });
   }
@@ -101,10 +108,28 @@ export async function resendNotification(contaId: string, notificationId: string
   const conta = r.ag_contas!;
   const start = new Date(r.inicio).toISOString();
 
-  if (n.tipo === "confirmacao_convidado" || n.tipo === "aviso_dono_nova") {
+  if (n.tipo === "aviso_dono_nova") {
+    // O aviso ao dono não leva link de gestão: é remontado sem trocar o token do convidado.
+    return redeliver(n, {
+      to: conta.email, replyTo: r.email_convidado, fromName: conta.nome_exibicao,
+      email: newBookingToOwner({
+        ownerName: conta.nome_exibicao, ownerTimeZone: conta.fuso,
+        typeName: r.ag_tipos_evento!.nome, guestName: r.nome_convidado, guestEmail: r.email_convidado, guestTimeZone: r.fuso_convidado,
+        notes: r.observacao, start, meetLink: r.link_meet, manageUrl: "",
+      }),
+    });
+  }
+  if (n.tipo === "confirmacao_convidado") {
+    // O link de gestão só existe no e-mail: a confirmação sai com link novo (aprovado em 05/11).
     if (r.status !== "confirmada") throw new OwnerActionError("transicao_invalida");
-    const result = await resendBookingEmails(r.id);
-    return result[n.tipo] === "enviada" ? "enviada" : "falhou";
+    try {
+      const result = await resendBookingEmails(r.id);
+      return result.confirmacao_convidado === "enviada" ? "enviada" : "falhou";
+    } catch (e) {
+      if (e instanceof CalendarError) throw new OwnerActionError(e.code === "agenda_indisponivel" ? "agenda_indisponivel" : "servico_indisponivel");
+      if (e instanceof BookingError) throw new OwnerActionError("transicao_invalida");
+      throw e;
+    }
   }
   if (n.tipo === "cancelamento_convidado") {
     return redeliver(n, {

@@ -14,6 +14,7 @@ import { formatDateTimeLong } from "@/lib/format";
 import { getCurrentAccount } from "@/server/auth/require-conta";
 import { getHolidayState } from "@/server/db/availability";
 import { getMeeting } from "@/server/db/meetings";
+import { MAX_ATTEMPTS } from "@/server/notifications";
 import painel from "../../painel.module.css";
 
 const t = copy.meetings;
@@ -65,7 +66,13 @@ async function MeetingContent({ params }: { params: PageProps<"/painel/reunioes/
                 ) : (
                   <span>
                     <span className={styles.noteFailed}>{n.status === "falhou" ? t.emailFailed : t.emailPending} </span>
-                    <ResendButton id={n.id} />
+                    {/* Só oferece o reenvio quando o servidor aceitaria (falhou, < 5 tentativas,
+                        confirmação só de reunião confirmada). */}
+                    {n.status !== "falhou" ? null : n.tentativas >= MAX_ATTEMPTS ? (
+                      <span className={styles.noteFailed}>{t.resendLimit}</span>
+                    ) : n.tipo === "confirmacao_convidado" && m.status !== "confirmada" ? null : (
+                      <ResendButton id={n.id} />
+                    )}
                   </span>
                 )}
               </li>

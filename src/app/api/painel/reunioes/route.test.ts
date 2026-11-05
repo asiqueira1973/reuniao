@@ -161,7 +161,7 @@ describe("POST /api/painel/notificacoes/[id]/reenviar", () => {
 
 describe("reenvio sem estragar o link do convidado (verifier 8.7)", () => {
   // Reenvia uma notificação da reserva pelo tipo.
-  async function resendByType(reservaId: string, tipo: string) {
+  async function resendByType(reservaId: string, tipo: "aviso_dono_nova" | "confirmacao_convidado") {
     const { data: n } = await db().from("ag_notificacoes").select("id").eq("reserva_id", reservaId).eq("tipo", tipo).single();
     return resendRoute(apiRequest(`/api/painel/notificacoes/${n!.id}/reenviar`, { method: "POST", cookie: a.cookie }), routeCtx({ id: n!.id }));
   }

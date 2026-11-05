@@ -198,7 +198,7 @@ export const copy = {
     cancelledAt: "Cancelada em {quando}",
     loadMore: "Mostrar mais",
     resent: "Reenviado.",
-    resendLimit: "Este e-mail já foi tentado 5 vezes.",
+    resendLimit: "Este e-mail já foi tentado 5 vezes.", // a aprovar (8.7)
     notificationTypes: {
       confirmacao_convidado: "Confirmação ao convidado",
       aviso_dono_nova: "Aviso de reunião nova",
@@ -235,8 +235,8 @@ export const copy = {
     reason: "Motivo",
     before: "Antes",
     after: "Agora",
-    cancelledByOwnerIntro: "{dono} cancelou a reunião.",
-    bookAgain: "Marcar outro horário",
+    cancelledByOwnerIntro: "{dono} cancelou a reunião.", // a aprovar (8.7)
+    bookAgain: "Marcar outro horário", // a aprovar (8.7)
     lostReschedule: "Falha ao remarcar: o horário antigo foi ocupado por outra reserva e o novo não pôde ser confirmado no Google.",
   },
   account: {

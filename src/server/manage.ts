@@ -77,11 +77,14 @@ export async function cancelByGuest(token: string, motivo: string | null, now = 
     try {
       await deleteEvent(r.conta_id, r.google_evento_id);
     } catch (e) {
-      await db()
+      const { data: back, error: e3 } = await db()
         .from("ag_reservas")
         .update({ status: "confirmada", cancelada_em: null, motivo_cancelamento: null })
         .eq("id", r.id)
-        .eq("status", "cancelada_convidado");
+        .eq("status", "cancelada_convidado")
+        .select("id");
+      // Só o id da reserva no log (seção 20): o evento continua no Google e o app a mostra cancelada.
+      if (e3 || !back?.length) console.error("reverter_cancelamento_falhou", { reservaId: r.id });
       if (e instanceof CalendarError) throw new ManageError(e.code === "agenda_indisponivel" ? "agenda_indisponivel" : "servico_indisponivel");
       throw e;
     }
