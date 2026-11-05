@@ -88,11 +88,11 @@ describe("createBooking — caminho feliz", () => {
     ].sort((a, b) => a.tipo.localeCompare(b.tipo)));
     const sent = vi.mocked(resend.sendEmail).mock.calls.map(([m]) => m);
     const toGuest = sent.find((m) => m.to === "ana@teste.dev")!;
-    expect(toGuest.subject).toBe("Confirmado: Reunião de 1h com Conta Teste · 09/11 às 13:30");
+    expect(toGuest.subject).toBe("Confirmado: Reunião de 1h com Conta Teste · seg., 09/11 às 13:30");
     expect(toGuest.replyTo).toBe(`${conta.slug}@teste.dev`);
     expect(toGuest.text).toContain(`/r/${r.token}`);
     const toOwner = sent.find((m) => m.to === `${conta.slug}@teste.dev`)!;
-    expect(toOwner.subject).toBe("Nova reunião: Ana Teste · 09/11 às 10:30");
+    expect(toOwner.subject).toBe("Nova reunião: Ana Teste · 09/11 10:30");
     expect(toOwner.replyTo).toBe("ana@teste.dev");
   });
 });
@@ -181,8 +181,12 @@ describe("POST /api/reservas", () => {
     expect(Object.keys(body).sort()).toEqual(["fim", "id", "inicio", "link_meet"]);
     expect(res.headers.get("set-cookie")).toMatch(/ag_confirmacao=.+HttpOnly/i);
   });
-  it("campo extra (ex.: fim vindo do navegador) ou e-mail inválido → 422", async () => {
-    expect((await post({ conta: conta.slug, tipo: "reuniao-1h", inicio: SLOT, ...GUEST, fim: "2026-11-09T20:00:00Z" })).status).toBe(422);
+  it("campo extra (ex.: fim vindo do navegador) é ignorado: o fim é sempre do servidor (8.5)", async () => {
+    const res = await post({ conta: conta.slug, tipo: "reuniao-1h", inicio: SLOT, ...GUEST, fim: "2026-11-09T20:00:00Z", status: "confirmada" });
+    expect(res.status).toBe(201);
+    expect((await res.json()).fim).toBe("2026-11-09T14:30:00.000Z");
+  });
+  it("e-mail ou fuso inválido → 422", async () => {
     expect((await post({ conta: conta.slug, tipo: "reuniao-1h", inicio: SLOT, ...GUEST, email: "não-é-email" })).status).toBe(422);
     expect((await post({ conta: conta.slug, tipo: "reuniao-1h", inicio: SLOT, ...GUEST, fuso: "Marte/Olimpo" })).status).toBe(422);
   });

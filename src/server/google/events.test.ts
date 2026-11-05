@@ -67,6 +67,15 @@ describe("insertEvent (regra 11.5)", () => {
     expect((await insertEvent("conta", INPUT, 1)).meetLink).toBeNull();
     expect(requests).toHaveLength(4);
   });
+  it("evento criado mas a busca do Meet falha: devolve o evento sem Meet (não é erro)", async () => {
+    const pending = { id: eventIdFor(RID), conferenceData: { createRequest: { status: { statusCode: "pending" } } } };
+    stub(Response.json(pending), new Response("x", { status: 503 }));
+    expect(await insertEvent("conta", INPUT, 1)).toEqual({ eventId: eventIdFor(RID), meetLink: null });
+  });
+  it("insert 200 com corpo ilegível: o evento existe, devolve o id derivado sem Meet", async () => {
+    stub(new Response("{quebrado", { status: 200 }));
+    expect(await insertEvent("conta", INPUT, 1)).toEqual({ eventId: eventIdFor(RID), meetLink: null });
+  });
   it("erro do Google → servico_indisponivel", async () => {
     stub(new Response("x", { status: 500 }));
     await expect(insertEvent("conta", INPUT)).rejects.toMatchObject({ code: "servico_indisponivel" });
