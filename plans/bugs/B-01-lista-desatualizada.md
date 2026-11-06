@@ -9,10 +9,11 @@ Build de produção local (`next build && next start`, porta 3020), conta `alexa
 Em `next dev` não acontece (por isso os testes e as conferências do 8.2 não pegaram).
 
 ## Causa
-`partialPrefetching` (Next 16): a página do painel lê o cookie de sessão, então o App Shell guardado no navegador já traz a lista. Depois de gravar por Route Handler, o formulário faz `router.push("/painel/tipos")` + `router.refresh()`, mas o `refresh()` só limpa o cache da rota **atual** (`/novo`), e o push reaproveita a lista antiga. Route Handler não invalida o cache do cliente; só Server Action invalida.
+Os componentes de cliente do painel copiam os dados do servidor para o estado (`useState(initial)`). O Next 16 com Cache Components guarda as páginas já visitadas com o estado intacto: ao voltar para `/painel/tipos`, a instância antiga da lista reaparece e o `useState` ignora o `initial` novo que veio do servidor. O mesmo explica o "só 1 tipo" visto em produção depois do seed por SQL.
+Tentativas descartadas (sem efeito no roteiro): Server Action com `revalidatePath("/painel", "layout")` e `await connection()` nas páginas.
 
 ## Correção
-Server Action `refreshPanel()` (`src/app/painel/actions.ts`), que confere a sessão e chama `revalidatePath("/painel", "layout")`. Todas as telas do painel a chamam depois de gravar, no lugar do `router.refresh()`, e antes de navegar.
+Padrão do React "ajustar estado quando a prop muda": cada componente guarda o `initial` recebido e, quando chega um novo, refaz o estado a partir dele. Aplicado em `event-type-list`, `weekly-editor`, `holidays-editor` e `account-form`.
 
 ## Teste
-Não há teste automatizado de cache do roteador no cliente (Vitest roda no Node). Prova: o roteiro acima no build de produção local, antes e depois. Teste de unidade da action: sem sessão não invalida nada.
+Não há teste automatizado do roteador no cliente (o Vitest roda no Node). Prova: o roteiro acima no build de produção local. Antes: o tipo novo não aparece (3 tentativas). Depois: "Teste Bug Quatro" aparece logo após salvar. Tipos de teste apagados do banco local depois.

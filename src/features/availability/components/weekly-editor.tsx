@@ -52,6 +52,14 @@ function CopyToPopover({ from, onApply, onClose }: { from: number; onApply: (day
 export function WeeklyEditor({ initial }: Props) {
   const router = useRouter();
   const [week, setWeek] = useState<Week>(() => groupByDay(initial));
+  const [base, setBase] = useState(initial);
+  // Bug B-01: o Next 16 guarda as páginas já visitadas com o estado intacto; quando chegam dados
+  // novos do servidor (`initial` novo), o estado é refeito a partir deles (padrão do React para
+  // ajustar estado quando a prop muda, sem efeito).
+  if (base !== initial) {
+    setBase(initial);
+    setWeek(groupByDay(initial));
+  }
   const [copyFrom, setCopyFrom] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

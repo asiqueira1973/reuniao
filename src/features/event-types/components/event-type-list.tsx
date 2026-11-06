@@ -64,6 +64,14 @@ function CopyLinkButton({ url }: { url: string }) {
 export function EventTypeList({ initial, siteUrl, accountSlug }: Props) {
   const router = useRouter();
   const [items, setItems] = useState(initial);
+  const [base, setBase] = useState(initial);
+  // Bug B-01: o Next 16 guarda as páginas já visitadas com o estado intacto; quando chegam dados
+  // novos do servidor (`initial` novo), o estado é refeito a partir deles (padrão do React para
+  // ajustar estado quando a prop muda, sem efeito).
+  if (base !== initial) {
+    setBase(initial);
+    setItems(initial);
+  }
   const [dragId, setDragId] = useState<string | null>(null);
 
   // Aplica a nova ordem na tela e grava; em erro, desfaz.

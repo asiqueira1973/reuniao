@@ -38,5 +38,6 @@ Saída saudável do verify: termina com a tabela de rotas do `next build`, códi
 - `next dev` às vezes fica com módulo velho depois de muitas edições (erro mostra código antigo): reinicie o servidor antes de caçar bug.
 - O banco local tem dados reais de dev: teste nunca roda rotina "do banco todo" (faxina) nem conta tabela inteira; limite às contas da fixture (`runDailyCleanup({ contaIds })`).
 - Produção: domínio principal `reuniao.app.br` e `www` → 308 para ele; ao contrário, o Origin não bate com `NEXT_PUBLIC_SITE_URL` e o painel dá `origem_invalida`.
+- Next 16 guarda páginas visitadas com o estado: componente de cliente que copia prop do servidor para `useState` precisa refazer o estado quando a prop muda (B-01). Bug de cache só aparece no `next build && next start`, não no `next dev`.
 - `copy.ts`: `  errors: {` aparece também dentro de `login`; ao inserir bloco por script, ancore num texto único (ex.: `errors: {\n    slug_em_uso`).
 - Quando o agente errar a mesma coisa duas vezes, a correção entra aqui.

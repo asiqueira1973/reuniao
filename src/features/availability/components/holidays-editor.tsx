@@ -18,6 +18,15 @@ export function HolidaysEditor({ initial, today }: Props) {
   const router = useRouter();
   const [active, setActive] = useState(initial.feriados_ativos);
   const [off, setOff] = useState<string[]>(initial.feriados_desligados);
+  const [base, setBase] = useState(initial);
+  // Bug B-01: o Next 16 guarda as páginas já visitadas com o estado intacto; quando chegam dados
+  // novos do servidor (`initial` novo), o estado é refeito a partir deles (padrão do React para
+  // ajustar estado quando a prop muda, sem efeito).
+  if (base !== initial) {
+    setBase(initial);
+    setActive(initial.feriados_ativos);
+    setOff(initial.feriados_desligados);
+  }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);

@@ -26,6 +26,15 @@ export function AccountForm({ initial, email, connection, timeZones, siteUrl }: 
   const router = useRouter();
   const [values, setValues] = useState(initial);
   const [saved, setSaved] = useState(initial);
+  const [base, setBase] = useState(initial);
+  // Bug B-01: o Next 16 guarda as páginas já visitadas com o estado intacto; quando chegam dados
+  // novos do servidor (`initial` novo), o estado é refeito a partir deles (padrão do React para
+  // ajustar estado quando a prop muda, sem efeito).
+  if (base !== initial) {
+    setBase(initial);
+    setValues(initial);
+    setSaved(initial);
+  }
   const [slugFree, setSlugFree] = useState<boolean | null>(null);
   const [confirmSlug, setConfirmSlug] = useState(false);
   const [busy, setBusy] = useState(false);
