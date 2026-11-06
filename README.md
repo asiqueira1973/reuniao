@@ -46,6 +46,7 @@ No passo 3 (Branding), em **Domínios autorizados**, acrescente `reuniao.app.br`
    - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` do projeto remoto (Supabase → Project Settings → API).
    - `CRON_SECRET`: um segredo novo (`openssl rand -base64 32`); a Vercel manda `Authorization: Bearer <CRON_SECRET>` sozinha para o cron.
 3. **Deploy**. Depois, **Settings → Domains** → `reuniao.app.br` e siga as instruções de DNS no registro.br (registro A `76.76.21.21` ou o que a Vercel indicar; `www` como CNAME).
+   - **Importante:** o principal tem que ser `reuniao.app.br` (Production) e o `www` deve redirecionar (308) para ele. Se ficar ao contrário, toda gravação do painel falha com `origem_invalida` (a origem precisa ser igual a `NEXT_PUBLIC_SITE_URL`). Para inverter: primeiro tire o redirect do principal, depois ponha no `www`.
 4. O cron vem do `vercel.json` (`/api/cron/diario`, todo dia 09:00 UTC = 06:00 de Brasília). Confira em **Settings → Cron Jobs**.
 5. No Google Cloud (passo 6 acima), o redirect `https://reuniao.app.br/api/auth/google/callback` já precisa estar cadastrado.
 6. Entre em `https://reuniao.app.br/entrar` com o Google (o banco remoto é outro: a conta nasce de novo) e rode o seed apontando para o remoto:
