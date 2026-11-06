@@ -10,6 +10,8 @@ export type Account = {
   email: string;
   displayName: string;
   slug: string;
+  // Aceite dos Termos e da Privacidade (spec v0.5, 8.11); null = boas-vindas pendentes.
+  termsAcceptedAt: string | null;
 };
 
 // Faixas da conta nova (regra 11.9): seg a sex, 10:30–12:00 e 14:30–18:00.
@@ -29,15 +31,19 @@ type GoogleLogin = {
   scopes: string[];
 };
 
-// Lê a conta pelo id da sessão. Devolve: a conta ou null se não existir mais.
+// Lê a conta pelo id da sessão. Devolve: a conta, ou null se não existir mais ou estiver
+// suspensa (spec v0.5, 8.13: sessão de conta suspensa não vale).
 export async function getAccountById(contaId: string): Promise<Account | null> {
   const { data, error } = await db()
     .from("ag_contas")
-    .select("id, email, nome_exibicao, slug")
+    .select("id, email, nome_exibicao, slug, termos_aceitos_em")
     .eq("id", contaId)
+    .is("suspensa_em", null)
     .maybeSingle();
   if (error) throw error;
-  return data ? { id: data.id, email: data.email, displayName: data.nome_exibicao, slug: data.slug } : null;
+  return data
+    ? { id: data.id, email: data.email, displayName: data.nome_exibicao, slug: data.slug, termsAcceptedAt: data.termos_aceitos_em }
+    : null;
 }
 
 // Escolhe o slug sugerido da conta nova (regra 11.9): parte local do e-mail normalizada; se
@@ -116,11 +122,13 @@ export async function upsertAccountFromGoogle(login: GoogleLogin): Promise<{ con
   return { contaId: conta.id, created: true };
 }
 
-// Diz se já existe conta para este login Google (o limite diário só vale para conta nova, 8.10).
-export async function accountExistsForGoogle(sub: string): Promise<boolean> {
-  const { data, error } = await db().from("ag_contas").select("id").eq("google_sub", sub).maybeSingle();
+// Situação da conta deste login Google: nova (ainda não existe; o limite diário vale, 8.10),
+// ativa ou suspensa (login recusado, 8.13).
+export async function accountStatusForGoogle(sub: string): Promise<"nova" | "ativa" | "suspensa"> {
+  const { data, error } = await db().from("ag_contas").select("suspensa_em").eq("google_sub", sub).maybeSingle();
   if (error) throw error;
-  return !!data;
+  if (!data) return "nova";
+  return data.suspensa_em ? "suspensa" : "ativa";
 }
 
 // Conta as contas criadas desde um instante (freio de cadastro do épico 8.10).

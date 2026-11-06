@@ -39,4 +39,12 @@ describe("proxy — 404 das páginas públicas", () => {
   it("rotas do app não passam pela checagem", async () => {
     expect(await isNotFound("/entrar")).toBe(false);
   });
+
+  it("conta suspensa → não encontrado; reativada volta (8.13)", async () => {
+    await db().from("ag_contas").update({ suspensa_em: new Date().toISOString() }).eq("id", conta.id);
+    expect(await isNotFound(`/${conta.slug}`)).toBe(true);
+    expect(await isNotFound(`/${conta.slug}/tipo-ok`)).toBe(true);
+    await db().from("ag_contas").update({ suspensa_em: null }).eq("id", conta.id);
+    expect(await isNotFound(`/${conta.slug}`)).toBe(false);
+  });
 });

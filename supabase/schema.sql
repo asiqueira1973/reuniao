@@ -275,6 +275,8 @@ CREATE TABLE IF NOT EXISTS "public"."ag_contas" (
     "feriados_desligados" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
     "criado_em" timestamp with time zone DEFAULT "now"() NOT NULL,
     "atualizado_em" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "termos_aceitos_em" timestamp with time zone,
+    "suspensa_em" timestamp with time zone,
     CONSTRAINT "ag_contas_mensagem_ck" CHECK ((("mensagem_boas_vindas" IS NULL) OR ("char_length"("mensagem_boas_vindas") <= 300))),
     CONSTRAINT "ag_contas_nome_ck" CHECK ((("char_length"("nome_exibicao") >= 1) AND ("char_length"("nome_exibicao") <= 100))),
     CONSTRAINT "ag_contas_slug_ck" CHECK (("slug" ~ '^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])$'::"text")),
@@ -283,6 +285,14 @@ CREATE TABLE IF NOT EXISTS "public"."ag_contas" (
 
 
 ALTER TABLE "public"."ag_contas" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."ag_contas"."termos_aceitos_em" IS 'Aceite dos Termos e da Privacidade (spec v0.5, 8.11). Nulo = boas-vindas pendentes.';
+
+
+
+COMMENT ON COLUMN "public"."ag_contas"."suspensa_em" IS 'Conta suspensa por abuso (spec v0.5, 8.13). Nulo = ativa.';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."ag_excecoes_data" (

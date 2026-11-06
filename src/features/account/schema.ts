@@ -41,3 +41,16 @@ export const accountPatchSchema = z
 export const accountDeleteSchema = z.object({ confirmacao: z.string().max(40) }).strict();
 
 export type AccountPatch = z.infer<typeof accountPatchSchema>;
+
+// Boas-vindas (spec v0.5, 8.11): nome, endereço e fuso obrigatórios e o aceite marcado (true).
+export const welcomeSchema = z
+  .object({
+    nome_exibicao: z.string().trim().min(1).max(100),
+    slug: z
+      .string()
+      .regex(SLUG_PATTERN)
+      .refine((s) => !isReservedAccountSlug(s), { message: RESERVED_SLUG }),
+    fuso: z.string().max(64).refine(isTimeZone),
+    aceite: z.literal(true),
+  })
+  .strict();

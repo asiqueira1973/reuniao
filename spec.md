@@ -438,8 +438,8 @@ Fluxo: `/painel/conta`: nome de exibição, endereço (`{domínio}/` + campo do 
 - [ ] Com `CONTAS_NOVAS_POR_DIA` contas criadas nas últimas 24 h, um e-mail novo vê "Cadastros pausados por hoje. Tente amanhã." e nada é gravado; quem já tem conta entra sempre.
 
 ### 8.11 Primeiro acesso (v0.5; plano 9.2)
-- [ ] Colunas novas em `ag_contas`: `termos_aceitos_em`, `boas_vindas_em`, `suspensa_em` (timestamptz, nulas). Contas existentes recebem as duas primeiras preenchidas na migration.
-- [ ] Conta com `boas_vindas_em` nulo é levada a `/painel/boas-vindas` (nome, endereço com checagem, fuso, aceite "Li e aceito os Termos de uso e a Política de privacidade"); sem o aceite, não avança; concluído, grava `termos_aceitos_em` e `boas_vindas_em` e vai para Tipos de evento.
+- [ ] Colunas novas em `ag_contas`: `termos_aceitos_em` e `suspensa_em` (timestamptz, nulas). Contas existentes ficam com o aceite nulo e passam uma vez pelas boas-vindas (aceite sem data inventada).
+- [ ] Conta com `termos_aceitos_em` nulo vê, no lugar do painel, as boas-vindas (nome, endereço com checagem, fuso, aceite "Li e aceito os Termos de uso e a Política de privacidade"); sem o aceite, não avança; concluído (`POST /api/painel/conta/boas-vindas`), grava os dados e `termos_aceitos_em` e abre Tipos de evento.
 
 ### 8.12 Página inicial e páginas legais (v0.5; plano 9.3)
 - [ ] `/` sem sessão mostra a página inicial do Reunião (o que é, "Entrar com Google", rodapé Privacidade · Termos · "Um produto DabLab"); com sessão, vai para o painel.
@@ -448,7 +448,7 @@ Fluxo: `/painel/conta`: nome de exibição, endereço (`{domínio}/` + campo do 
 - [ ] As páginas públicas e a tela de entrar têm links para Privacidade e Termos. Textos em `copy.ts`.
 
 ### 8.13 Proteções para uso público (v0.5; plano 9.4)
-- [ ] Conta com `suspensa_em`: página pública mostra "Esta agenda não está disponível.", sem horários; login mostra "Esta conta está suspensa."; reativar (`suspensa_em = null`) devolve tudo.
+- [ ] Conta com `suspensa_em`: tratada como inexistente nas páginas públicas (404), sem horários nem reservas; a sessão deixa de valer (401) e o login mostra "Esta conta está suspensa." sem trocar o token; reativar (`suspensa_em = null`) devolve tudo.
 - [ ] Rate limit de `POST /api/reservas` no Vercel Firewall (10/min por IP), documentado no README.
 
 ### 8.9 Faxina diária, documentação e entrega

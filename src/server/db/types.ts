@@ -30,14 +30,14 @@ isOneToOne: true
                   ]
                 },"ag_contas": {
                   Row: {
-                    "atualizado_em": string,"criado_em": string,"email": string,"feriados_ativos": boolean,"feriados_desligados": (string)[],"fuso": string,"google_sub": string,"id": string,"mensagem_boas_vindas": string | null,"nome_exibicao": string,"slug": string
+                    "atualizado_em": string,"criado_em": string,"email": string,"feriados_ativos": boolean,"feriados_desligados": (string)[],"fuso": string,"google_sub": string,"id": string,"mensagem_boas_vindas": string | null,"nome_exibicao": string,"slug": string,"suspensa_em": string | null,"termos_aceitos_em": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "atualizado_em"?: string,"criado_em"?: string,"email": string,"feriados_ativos"?: boolean,"feriados_desligados"?: (string)[],"fuso"?: string,"google_sub": string,"id"?: string,"mensagem_boas_vindas"?: string | null,"nome_exibicao": string,"slug": string
+                    "atualizado_em"?: string,"criado_em"?: string,"email": string,"feriados_ativos"?: boolean,"feriados_desligados"?: (string)[],"fuso"?: string,"google_sub": string,"id"?: string,"mensagem_boas_vindas"?: string | null,"nome_exibicao": string,"slug": string,"suspensa_em"?: string | null,"termos_aceitos_em"?: string | null
                   }
                   Update: {
-                    "atualizado_em"?: string,"criado_em"?: string,"email"?: string,"feriados_ativos"?: boolean,"feriados_desligados"?: (string)[],"fuso"?: string,"google_sub"?: string,"id"?: string,"mensagem_boas_vindas"?: string | null,"nome_exibicao"?: string,"slug"?: string
+                    "atualizado_em"?: string,"criado_em"?: string,"email"?: string,"feriados_ativos"?: boolean,"feriados_desligados"?: (string)[],"fuso"?: string,"google_sub"?: string,"id"?: string,"mensagem_boas_vindas"?: string | null,"nome_exibicao"?: string,"slug"?: string,"suspensa_em"?: string | null,"termos_aceitos_em"?: string | null
                   }
                   Relationships: [
                     

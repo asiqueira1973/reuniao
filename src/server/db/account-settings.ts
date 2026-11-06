@@ -54,6 +54,21 @@ export async function updateAccountSettings(contaId: string, patch: AccountPatch
   return settings;
 }
 
+// Conclui as boas-vindas (spec v0.5, 8.11): grava nome, endereço e fuso e o instante do aceite
+// dos Termos e da Privacidade, numa única atualização (endereço ocupado → slug_em_uso, sem aceite).
+export async function completeWelcome(
+  contaId: string,
+  values: { nome_exibicao: string; slug: string; fuso: string },
+  now = new Date(),
+): Promise<void> {
+  const { error } = await db()
+    .from("ag_contas")
+    .update({ ...values, termos_aceitos_em: now.toISOString() })
+    .eq("id", contaId);
+  if (error?.code === "23505") throw new AccountError("slug_em_uso");
+  if (error) throw error;
+}
+
 // Diz se o slug está livre para esta conta (o próprio slug atual conta como livre).
 export async function isSlugAvailable(contaId: string, slug: string): Promise<boolean> {
   const { data, error } = await db().from("ag_contas").select("id").eq("slug", slug).maybeSingle();

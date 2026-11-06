@@ -189,4 +189,17 @@ describe("cadastro aberto (épico 8.10, spec v0.5)", () => {
     const again = await GET(callback());
     expect(again.headers.get("location")).toBe("http://localhost:3020/painel/tipos");
   });
+
+  it("conta suspensa → erro=suspensa e o token não é trocado (8.13)", async () => {
+    const sub = `sub-${randomUUID()}`;
+    mockGoogle({ sub });
+    await GET(callback());
+    const [conta] = await accountBySub(sub);
+    await db().from("ag_contas").update({ suspensa_em: new Date().toISOString() }).eq("id", conta.id);
+    mockGoogle({ sub, refreshToken: "1//depois-da-suspensao" });
+    const res = await GET(callback());
+    expect(res.headers.get("location")).toBe("http://localhost:3020/entrar?erro=suspensa");
+    const { data } = await db().from("ag_conexoes_google").select("refresh_token_cifrado").eq("conta_id", conta.id).single();
+    expect(decryptSecret(data!.refresh_token_cifrado)).not.toBe("1//depois-da-suspensao");
+  });
 });

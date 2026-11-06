@@ -20,6 +20,8 @@ export async function getPublicAccount(slug: string): Promise<PublicAccount | nu
     .from("ag_contas")
     .select("id, slug, nome_exibicao, mensagem_boas_vindas, fuso, feriados_ativos, feriados_desligados, ag_conexoes_google(status)")
     .eq("slug", slug)
+    // Conta suspensa (spec v0.5, 8.13) é tratada como inexistente: sem página, horários nem reservas.
+    .is("suspensa_em", null)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
@@ -99,7 +101,7 @@ export async function getConfirmedReservation(reservaId: string) {
 // Diz se o endereço público existe: conta pelo slug e, se vier, tipo não excluído da conta.
 // Usado pelo proxy para responder 404 de verdade antes do streaming (critério 8.5).
 export async function publicPathExists(accountSlug: string, typeSlug?: string): Promise<boolean> {
-  const { data: conta, error } = await db().from("ag_contas").select("id").eq("slug", accountSlug).maybeSingle();
+  const { data: conta, error } = await db().from("ag_contas").select("id").eq("slug", accountSlug).is("suspensa_em", null).maybeSingle();
   if (error) throw error;
   if (!conta) return false;
   if (!typeSlug) return true;

@@ -21,6 +21,8 @@ Ver `.env.example` e a seção 18 do spec. Gere os segredos com `openssl rand -b
 - `EMAILS_PERMITIDOS` vazia ou ausente = qualquer conta Google cria agenda. Definida = só os da lista (útil em dev).
 - `EMAILS_BLOQUEADOS`: e-mails barrados, separados por vírgula.
 - `CONTAS_NOVAS_POR_DIA`: freio de cadastro (padrão 50 nas últimas 24 h).
+- Suspender uma conta por abuso (SQL no Supabase): `update ag_contas set suspensa_em = now() where slug = 'fulano';` — reativar: `set suspensa_em = null`.
+- Limite de reservas por IP (Vercel → Firewall → **Add Rule**): se `Request Path` igual a `/api/reservas` e `Method` igual a `POST`, então **Rate Limit**, 10 requisições por 60 s por IP, ação `Deny` (429).
 
 ## Google Cloud (roteiro de cliques, uma vez só)
 Faça logado com a conta Google que vai **administrar** o app (pode ser o Gmail pessoal; o projeto serve para todas as contas, inclusive a da BBZ).

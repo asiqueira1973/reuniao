@@ -9,6 +9,7 @@ export const copy = {
     errors: {
       sem_acesso: "Este e-mail não tem acesso.",
       cadastros_pausados: "Cadastros pausados por hoje. Tente amanhã.", // spec v0.5 (8.10)
+      suspensa: "Esta conta está suspensa.", // spec v0.5 (8.13)
       escopos: "Para funcionar, marque as duas permissões de agenda.",
       falha: "Não consegui consultar a agenda agora. Tente de novo em instantes.",
     },
@@ -427,6 +428,14 @@ export const copy = {
         ],
       },
     ],
+  },
+  welcome: {
+    // Boas-vindas do primeiro acesso (spec v0.5, 8.11). A aprovar.
+    title: "Boas-vindas ao Reunião",
+    intro: "Confira como você vai aparecer para quem marcar reunião com você. Dá para mudar tudo depois, em Conta.",
+    acceptBefore: "Li e aceito os ",
+    acceptBetween: " e a ",
+    submit: "Começar",
   },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",

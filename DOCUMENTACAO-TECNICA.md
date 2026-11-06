@@ -12,7 +12,7 @@ Todas as tabelas ficam no schema `public` com prefixo `ag_`. O app acessa o banc
 
 | Tabela | O que guarda |
 |---|---|
-| `ag_contas` | Uma conta por e-mail Google: nome de exibição, endereço público (`slug`), mensagem de boas-vindas, fuso, feriados ligados (`feriados_ativos`) e a lista de feriados desligados (`feriados_desligados`). Nasce no primeiro login. |
+| `ag_contas` | Uma conta por e-mail Google: nome de exibição, endereço público (`slug`), mensagem de boas-vindas, fuso, feriados ligados (`feriados_ativos`) e a lista de feriados desligados (`feriados_desligados`). Nasce no primeiro login. v0.5: `termos_aceitos_em` (aceite dos Termos e da Privacidade nas boas-vindas; nulo = boas-vindas pendentes) e `suspensa_em` (conta suspensa por abuso; nulo = ativa). |
 | `ag_conexoes_google` | A conexão com o Google Agenda da conta: refresh token **cifrado** (AES-256-GCM), escopos concedidos e a situação. `aviso_reconectar_enviado` impede repetir o e-mail "Reconecte sua agenda". |
 | `ag_tipos_evento` | Os tipos de reunião (ex.: "Reunião de 30 minutos"): duração, Meet, antecedência mínima, janela em dias, intervalos antes/depois, passo dos horários, visível na página, ativo, ordem. Exclusão é lógica (`excluido_em`). |
 | `ag_horarios_semanais` | As faixas da semana (dia 0 = domingo … 6 = sábado, início e fim em múltiplos de 5 min). |
@@ -65,6 +65,7 @@ Enums:
 | `/painel/tipos`, `/novo`, `/[id]` | `GET/POST /api/painel/tipos`, `PATCH/DELETE /api/painel/tipos/[id]`, `POST /api/painel/tipos/ordem` | `ag_tipos_evento` |
 | `/painel/disponibilidade` | `PUT /api/painel/disponibilidade/semanal`, `PUT/DELETE …/datas`, `PUT …/feriados` | `ag_horarios_semanais`, `ag_excecoes_data`, `ag_contas` (feriados) |
 | `/painel/reunioes`, `/[id]` | `GET /api/painel/reunioes`, `GET …/[id]`, `POST …/[id]/cancelar`, `POST /api/painel/notificacoes/[id]/reenviar` | `ag_reservas`, `ag_notificacoes` (+ Google, Resend) |
+| (boas-vindas, no lugar do painel enquanto `termos_aceitos_em` é nulo) | `POST /api/painel/conta/boas-vindas` | `ag_contas` |
 | `/painel/conta` | `GET/PATCH/DELETE /api/painel/conta`, `GET …/slug-disponivel` | `ag_contas`, `ag_conexoes_google` (+ revoke no Google) |
 | `/{slug}` | — (Server Component) | `ag_contas`, `ag_tipos_evento` |
 | `/{slug}/{tipo}` | `GET /api/disponibilidade`, `POST /api/reservas` | todas as de disponibilidade + `ag_reservas`, `ag_notificacoes` (+ Google freebusy/events, Resend) |
@@ -90,6 +91,8 @@ O `src/proxy.ts` protege `/painel/*` (sessão no cookie `ag_sessao`, renovada ap
 **Reuniões do dono (8.7).** Abas Próximas/Passadas/Canceladas (50 por página, desempate por id). Cancelar com motivo (mesma ordem segura do convidado) e e-mail ao convidado com link para marcar de novo. Reenviar e-mail: o que não está `enviada` e tem < 5 tentativas (o botão aparece só para `falhou`); confirmação e aviso de reserva nova só de reunião confirmada; a confirmação ao convidado sai com link novo (o Google é atualizado antes de gravar o token novo); os demais são remontados sem mexer no token.
 
 **Conta (8.8).** Nome, endereço (checagem ao digitar, confirmação "Links antigos deixam de funcionar. Continuar?"; os links `/r/` não dependem do slug), mensagem, fuso (só nomes IANA). Faixa laranja no painel quando a conexão está revogada. Excluir: digitar o endereço → revoga o token no Google → apaga a conta em cascata → apaga o cookie. Eventos já criados no Google ficam.
+
+**Boas-vindas e suspensão (v0.5, 8.11 e 8.13).** O layout do painel mostra as boas-vindas enquanto não houver aceite. Conta com `suspensa_em`: `getAccountById` devolve null (sessão não vale), `getPublicAccount`/`publicPathExists` a ignoram (404, sem horários nem reservas) e o login recusa com `erro=suspensa`. Suspender: `update ag_contas set suspensa_em = now() where slug = '…'`; reativar: `= null`.
 
 **Faxina diária (8.9).** `src/server/cron.ts`, 09:00 UTC: (1) `processando` há mais de 10 min → `falhou`, apagando o evento que possa ter sido criado (remarcação presa só vai para o log `remarcacao_presa`); (2) reenvia `falhou` e `pendente` antigos com < 5 tentativas de reuniões que não terminaram, com as mesmas regras do botão Reenviar (confirmação `pendente` nunca: o e-mail pode ter saído e o reenvio troca o token; uma tentativa por e-mail por rodada); (3) anonimiza reservas com fim há mais de 24 meses. O que já saiu nunca é reenviado. Nos testes, a faxina roda só nas contas de teste (`contaIds`).
 
