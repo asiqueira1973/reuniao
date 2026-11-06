@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Versão | 0.4 (04/11/2026: nome Reunião; 0.3: domínio reuniao.app.br; 0.2: respostas da seção 25) |
+| Versão | 0.5 (05/11/2026: app aberto para qualquer pessoa, produto DabLab, épicos 8.10–8.13; 0.4: nome Reunião; 0.3: domínio reuniao.app.br; 0.2: respostas da seção 25) |
 | Responsável de produto | Alexandre Siqueira |
 | Status | aprovado para implementação |
 | Data | 03/11/2026 |
@@ -36,7 +36,9 @@ O Alexandre usa o Calendly só para ter um endereço público onde as pessoas re
 
 Ele também quer **mais de uma conta**: uma com o Gmail pessoal (para testar primeiro) e outra com o e-mail da BBZ (`asq@bbz.com.br`), cada uma com endereço, tipos de evento e agenda próprios. Depois disso ele cancela o Calendly.
 
-**Anti-escopo:** não é um SaaS aberto ao público (só e-mails autorizados criam conta), não tem equipes nem agendamento coletivo, não cobra do convidado, não sincroniza Outlook ou iCloud e não é um app de calendário (a agenda é o Google).
+**Mudança v0.5 (05/11/2026):** o Reunião passa a ser um **produto gratuito da DabLab** (Alexandre da Silva de Siqueira LTDA - ME, CNPJ 61.033.268/0001-14, São Paulo/SP), aberto a qualquer pessoa com conta Google. Grátis para sempre, só em português.
+
+**Anti-escopo:** não cobra de ninguém (nem do dono nem do convidado), não tem equipes nem agendamento coletivo, não cobra do convidado, não sincroniza Outlook ou iCloud e não é um app de calendário (a agenda é o Google).
 
 ---
 
@@ -118,7 +120,7 @@ Dois perfis: **dono** (logado; dono de uma `ag_contas`) e **convidado** (anônim
 
 | Ação | Dono | Convidado |
 |---|---|---|
-| Criar conta | ✅ só se o e-mail Google estiver em `EMAILS_PERMITIDOS` | ❌ |
+| Criar conta | ✅ qualquer conta Google (v0.5), salvo e-mail em `EMAILS_BLOQUEADOS`, conta suspensa ou limite diário de contas novas atingido; se `EMAILS_PERMITIDOS` estiver definida (dev/testes), só os da lista | ❌ |
 | Ver/editar tipos de evento, disponibilidade e dados da conta | ✅ **só da própria conta** | ❌ |
 | Ver página pública e horários livres | ✅ | ✅ de qualquer conta ativa, só tipos `ativo`; tipos ocultos só pelo link direto |
 | Ver detalhes de compromissos do Google | ❌ (o app só lê livre/ocupado) | ❌ (vê só horários livres, nunca o motivo de ocupado) |
@@ -129,7 +131,7 @@ Dois perfis: **dono** (logado; dono de uma `ag_contas`) e **convidado** (anônim
 | Remarcar reserva | ❌ no MVP (o dono cancela e manda o link de novo) | ✅ **só a do token**, mesmas condições do cancelamento |
 | Desconectar Google / excluir conta | ✅ só a própria | ❌ |
 
-**Primeiro dono:** não há seed de usuário. A conta nasce no primeiro login de um e-mail que esteja em `EMAILS_PERMITIDOS` (variável de ambiente, lista separada por vírgula). Na criação, o servidor grava a disponibilidade padrão e um tipo de evento padrão (regra 11.9).
+**Primeiro dono:** não há seed de usuário. A conta nasce no primeiro login (v0.5: qualquer e-mail Google; `EMAILS_PERMITIDOS`, se definida, restringe à lista). Na criação, o servidor grava a disponibilidade padrão e um tipo de evento padrão (regra 11.9).
 
 O escopo de dados é sempre `conta_id`; toda rota do painel chama `requireConta()` na primeira linha e filtra por `conta_id` da sessão.
 
@@ -139,7 +141,7 @@ O escopo de dados é sempre `conta_id`; toda rota do painel chama `requireConta(
 
 - **Identificador:** o e-mail da conta Google (`sub` do Google guardado como `google_sub`, chave estável; o e-mail pode mudar).
 - **Entrar:** botão "Entrar com Google" em `/entrar` → `GET /api/auth/google` gera `state` (cookie curto, `HttpOnly`) e redireciona ao Google com `access_type=offline`, `prompt=consent`, escopos `openid email profile https://www.googleapis.com/auth/calendar.freebusy https://www.googleapis.com/auth/calendar.events.owned`.
-- **Retorno:** `GET /api/auth/google/callback` confere o `state`, troca o código, valida o `id_token`, confere se o e-mail está em `EMAILS_PERMITIDOS` (senão mostra "Este e-mail não tem acesso." e não grava nada), confere que **os dois escopos de agenda foram concedidos** (o Google permite desmarcar; se faltar, mostra "Para funcionar, marque as duas permissões de agenda." e oferece tentar de novo), cria ou atualiza `ag_contas` e `ag_conexoes_google` (refresh token **cifrado**, regra 11.10) e abre a sessão.
+- **Retorno:** `GET /api/auth/google/callback` confere o `state`, troca o código, valida o `id_token`, confere o acesso (v0.5, épico 8.10): e-mail em `EMAILS_BLOQUEADOS`, fora de `EMAILS_PERMITIDOS` quando ela está definida, ou conta suspensa → "Este e-mail não tem acesso." / "Esta conta está suspensa."; conta **nova** com o limite diário `CONTAS_NOVAS_POR_DIA` (padrão 50) atingido → "Cadastros pausados por hoje. Tente amanhã."; em todos esses casos não grava nada, confere que **os dois escopos de agenda foram concedidos** (o Google permite desmarcar; se faltar, mostra "Para funcionar, marque as duas permissões de agenda." e oferece tentar de novo), cria ou atualiza `ag_contas` e `ag_conexoes_google` (refresh token **cifrado**, regra 11.10) e abre a sessão.
 - **Várias contas:** cada e-mail Google é uma conta separada. Para usar outra, o dono sai e entra com o outro e-mail (o botão do Google mostra o seletor de contas: `prompt=consent select_account`).
 - **Sessão:** cookie `ag_sessao` com JWT HS256 (`SESSION_SECRET`), `HttpOnly`, `Secure`, `SameSite=Lax`, validade 30 dias, renovado a cada uso com mais de 7 dias. Conteúdo: `conta_id` e `iat`. `proxy.ts` redireciona `/painel/*` sem sessão para `/entrar`.
 - **Sair:** `POST /sair` (formulário) apaga o cookie. Nunca `<Link href="/sair">`.
@@ -429,6 +431,25 @@ Fluxo: `/painel/conta`: nome de exibição, endereço (`{domínio}/` + campo do 
 - [ ] Trocar o slug avisa "Links antigos deixam de funcionar." e pede confirmação; os links `/r/{token}` continuam funcionando (não dependem do slug).
 - [ ] Reconectar refaz o OAuth e volta `status = ativa` e `aviso_reconectar_enviado = false`.
 - [ ] Excluir conta pede digitar o slug, revoga o token no Google (`oauth2.googleapis.com/revoke`), apaga a conta em cascata, **não** apaga eventos já criados no Google e encerra a sessão.
+
+### 8.10 Cadastro aberto (v0.5; plano 9.1)
+- [ ] Sem `EMAILS_PERMITIDOS`, qualquer e-mail Google cria conta; com ela, só os da lista (comportamento de antes).
+- [ ] E-mail em `EMAILS_BLOQUEADOS` vê "Este e-mail não tem acesso." e nada é gravado.
+- [ ] Com `CONTAS_NOVAS_POR_DIA` contas criadas nas últimas 24 h, um e-mail novo vê "Cadastros pausados por hoje. Tente amanhã." e nada é gravado; quem já tem conta entra sempre.
+
+### 8.11 Primeiro acesso (v0.5; plano 9.2)
+- [ ] Colunas novas em `ag_contas`: `termos_aceitos_em`, `boas_vindas_em`, `suspensa_em` (timestamptz, nulas). Contas existentes recebem as duas primeiras preenchidas na migration.
+- [ ] Conta com `boas_vindas_em` nulo é levada a `/painel/boas-vindas` (nome, endereço com checagem, fuso, aceite "Li e aceito os Termos de uso e a Política de privacidade"); sem o aceite, não avança; concluído, grava `termos_aceitos_em` e `boas_vindas_em` e vai para Tipos de evento.
+
+### 8.12 Página inicial e páginas legais (v0.5; plano 9.3)
+- [ ] `/` sem sessão mostra a página inicial do Reunião (o que é, "Entrar com Google", rodapé Privacidade · Termos · "Um produto DabLab"); com sessão, vai para o painel.
+- [ ] `/privacidade` traz a política completa em nome da DabLab (dados do dono e do convidado, uso do Google Agenda com a declaração de uso limitado da Google API Services User Data Policy, retenção, direitos LGPD, contato `alexandre@dablab.com.br`); com `?de={slug}`, mantém o contato do dono daquela página.
+- [ ] `/termos` traz os termos de uso (serviço gratuito sem garantia, responsabilidade do dono pelos dados dos convidados, uso proibido, suspensão, foro de São Paulo/SP).
+- [ ] As páginas públicas e a tela de entrar têm links para Privacidade e Termos. Textos em `copy.ts`.
+
+### 8.13 Proteções para uso público (v0.5; plano 9.4)
+- [ ] Conta com `suspensa_em`: página pública mostra "Esta agenda não está disponível.", sem horários; login mostra "Esta conta está suspensa."; reativar (`suspensa_em = null`) devolve tudo.
+- [ ] Rate limit de `POST /api/reservas` no Vercel Firewall (10/min por IP), documentado no README.
 
 ### 8.9 Faxina diária, documentação e entrega
 - [ ] `/api/cron/diario` (protegido por `CRON_SECRET`) faz: reenvio de notificações `falhou`/`pendente` com menos de 5 tentativas; `processando` com mais de 10 min → `falhou`; anonimização da regra 11.12. É idempotente: rodar duas vezes seguidas não reenvia nada.
@@ -796,7 +817,9 @@ plans/
 | `GOOGLE_CLIENT_SECRET` | **secreta** | OAuth |
 | `TOKEN_ENC_KEY` | **secreta** | regra 11.10 |
 | `SESSION_SECRET` | **secreta** | seção 6 |
-| `EMAILS_PERMITIDOS` | não (só servidor) | seção 5 |
+| `EMAILS_PERMITIDOS` | não (só servidor) | seção 5; v0.5: opcional (vazia = aberto) |
+| `EMAILS_BLOQUEADOS` | não (só servidor) | v0.5, seção 6 |
+| `CONTAS_NOVAS_POR_DIA` | não (só servidor) | v0.5, seção 6 (padrão 50) |
 | `RESEND_API_KEY` | **secreta** | e-mail |
 | `EMAIL_REMETENTE` | não | `agenda@{domínio}` |
 | `CRON_SECRET` | **secreta** | `/api/cron/diario` |
@@ -835,6 +858,7 @@ Ao fim da implementação, gerar `DOCUMENTACAO-TECNICA.md` em português, a part
 | Logs | diagnóstico | Vercel | dono | padrão da Vercel; **nunca** registrar e-mail, nome, observação, token ou URL `/r/…` |
 
 - **LGPD:** base legal = execução de procedimento a pedido do titular (art. 7º, V) para o convidado. A página pública tem link "Privacidade" com texto curto: o que é guardado, por quanto tempo e que o convidado pode pedir exclusão por e-mail ao dono (o dono cancela/apaga; a exclusão de reserva individual a pedido é manual na v1, assunção 24.9).
+- **LGPD v0.5:** a DabLab é **controladora** dos dados dos donos (nome, e-mail, token do Google, configurações; base legal: execução de contrato, art. 7º, V, com aceite dos Termos registrado em `termos_aceitos_em`) e **operadora** dos dados dos convidados em nome de cada dono, que é o controlador deles. Política de privacidade e Termos de uso completos em `/privacidade` e `/termos` (épico 8.12). O uso dos dados do Google segue a Google API Services User Data Policy, inclusive os requisitos de uso limitado.
 - **Segredos** só no servidor (18.1). Toda rota de painel com `requireConta()`; toda rota de token com `requireReservaPorToken()`. Service role ignora RLS: os helpers de `src/server/db/` exigem `conta_id` ou `token_hash` como parâmetro obrigatório.
 - **CSRF:** rotas de escrita do painel aceitam só `POST/PUT/PATCH/DELETE` com cookie `SameSite=Lax` e conferem o cabeçalho `Origin` = `NEXT_PUBLIC_SITE_URL`.
 - **OAuth:** `state` aleatório em cookie de 10 min; `id_token` validado (assinatura, `aud`, `iss`, `exp`).
@@ -919,6 +943,7 @@ O agente de código **para e pergunta** ao cruzar com qualquer item abaixo.
 | 25.1 | ~~Nome do produto e domínio~~ **Respondida (03/11/2026):** domínio **`reuniao.app.br`** (comprado pelo Alexandre). Produção: `NEXT_PUBLIC_SITE_URL=https://reuniao.app.br`, remetente `agenda@reuniao.app.br` (domínio verificado no Resend), redirect do OAuth `https://reuniao.app.br/api/auth/google/callback`. Dev: `localhost:3020`, remetente de teste `onboarding@resend.dev`. Nome exibido do produto: **Reunião** (04/11/2026) | — | — |
 | 25.2 | ~~Slug de cada conta~~ **Respondida:** Gmail pessoal → `alexandre`; BBZ → `alexandre-bbz`. O `seed:calendly` aceita `--slug` para gravar o endereço junto com os tipos | — | — |
 | 25.3 | ~~Contato de privacidade~~ **Respondida:** o e-mail da própria conta (`ag_contas.email`) da página que o convidado está vendo | — | — |
+| 25.4 | ~~App aberto~~ **Respondida (05/11/2026):** produto gratuito da DabLab, aberto de uma vez, só pt-BR; Google Cloud no projeto DabLab (guarda-chuva); controladora dos dados dos donos: DabLab, contato `alexandre@dablab.com.br`, foro São Paulo/SP. Plano em `plans/9.0-app-aberto.md` | — | — |
 
 ---
 
