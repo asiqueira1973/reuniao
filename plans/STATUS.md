@@ -23,3 +23,9 @@
 ## Ambientes
 - O banco local de cada computador é independente (dados não sincronizam). No computador novo: entrar com Google uma vez e rodar `npm run seed:calendly -- <email> --slug alexandre`.
 - Segredos só no `.env.local` de cada computador (nunca no git).
+
+## Verificação do Google (pausada em 05/11/2026 à noite)
+Feito no projeto DabLab (dablab-473020): Branding preenchido (home dablab.com.br, privacidade e termos em reuniao.app.br), domínios autorizados só reuniao.app.br e dablab.com.br (os dois verificados no Search Console; não apagar os TXT do registro.br), Data Access com os escopos, a justificativa e o vídeo (https://youtu.be/YJKAcRU54UE). O site dablab.com.br ganhou rodapé "Legal" e o Reunião na página Apps.
+Travado por um bug conhecido do console: "Your branding is not being shown to users" sem botão "Verify branding". Saída: tópico em https://discuss.google.dev (Cloud Foundations & Onboarding → OAuth App Verification) com o project ID, pedindo para publicar o branding.
+Enquanto isso: o app funciona com o aviso "app não verificado" e o limite de 100 usuários do projeto. `EMAILS_PERMITIDOS` continua preenchida na Vercel (cadastro ainda restrito).
+Atenção: os domínios dos outros apps (agendapsi, editoria, mentor1on1, supabase.co, flutterflow.app) saíram dos domínios autorizados; conferir se o login desses apps continua funcionando.
