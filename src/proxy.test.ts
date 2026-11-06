@@ -25,4 +25,12 @@ describe("proxy (seção 6)", () => {
     const res = await proxy(new NextRequest("http://localhost:3020/painel", { headers: { cookie: `ag_sessao=${jwt}` } }));
     expect(res.cookies.get("ag_sessao")?.value).toBeTruthy();
   });
+
+  it("/ sem sessão mostra a página inicial; com sessão vai para o painel (v0.5)", async () => {
+    const anon = await proxy(new NextRequest("http://localhost:3020/"));
+    expect(anon.headers.get("location")).toBeNull();
+    const cookie = `ag_sessao=${await signSession("00000000-0000-4000-8000-000000000001")}`;
+    const logged = await proxy(new NextRequest("http://localhost:3020/", { headers: { cookie } }));
+    expect(logged.headers.get("location")).toBe("http://localhost:3020/painel/tipos");
+  });
 });

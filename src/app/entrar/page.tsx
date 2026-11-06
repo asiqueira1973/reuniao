@@ -1,6 +1,7 @@
 // [Público] Entrar — seção 10 e épico 8.1: botão "Entrar com Google" e mensagens de erro de acesso.
 // O botão é um link para GET /api/auth/google (inicia o OAuth). O erro vem de ?erro=… e, com
 // Cache Components, é lido dentro de <Suspense>.
+import Link from "next/link";
 import { Suspense } from "react";
 import { copy, isLoginErrorCode } from "@/lib/copy";
 import styles from "./entrar.module.css";
@@ -35,6 +36,13 @@ export default function EntrarPage({ searchParams }: PageProps<"/entrar">) {
           </svg>
           {copy.login.button}
         </a>
+        <p className={styles.agree}>
+          {copy.legal.footerAgree.split(copy.legal.terms)[0]}
+          <Link href="/termos">{copy.legal.terms}</Link>
+          {copy.legal.footerAgree.split(copy.legal.terms)[1].split(copy.legal.privacy)[0]}
+          <Link href="/privacidade">{copy.legal.privacy}</Link>
+          {copy.legal.footerAgree.split(copy.legal.privacy)[1]}
+        </p>
       </div>
     </main>
   );

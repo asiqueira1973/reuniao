@@ -50,3 +50,6 @@
 }
 
 .google:hover { background: var(--surface); }
+
+/* Aviso de aceite dos Termos e da Privacidade (spec v0.5). */
+.agree { margin: 0; font-size: 13px; line-height: 1.4; color: var(--text-secondary); }

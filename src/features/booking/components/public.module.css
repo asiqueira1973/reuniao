@@ -207,3 +207,9 @@
 .footer a { color: var(--text-secondary); }
 .prose p { margin: 0 0 14px; font-size: 16px; line-height: 1.5; }
 .prose p:last-child { margin-bottom: 0; }
+
+/* Textos legais (spec v0.5, 8.12). */
+.legalUpdated { margin: -8px 0 20px; text-align: center; color: var(--text-secondary); font-size: 14px; }
+.legalHeading { margin: 24px 0 8px; font-size: 18px; font-weight: 700; }
+.legalBox { margin: 0 0 8px; padding: 4px 20px 16px; border-radius: 16px; background: var(--surface); }
+.footer a + a, .footer a { white-space: nowrap; }

@@ -1,7 +1,9 @@
-// [Convidado] Privacidade — seção 20 (LGPD): o que é guardado, por quanto tempo e a quem pedir a
-// exclusão. /privacidade?de={slug}: o contato é o e-mail da conta daquela página (pergunta 25.3).
+// [Público] Política de privacidade — seção 20 e spec v0.5 (épico 8.12): política completa em nome
+// da DabLab. Com ?de={slug}, mostra antes o bloco "Sobre esta agenda", com o contato do dono
+// daquela página (pergunta 25.3).
 import Link from "next/link";
 import { Suspense } from "react";
+import { LegalPage } from "@/components/legal/legal-page";
 import styles from "@/features/booking/components/public.module.css";
 import { copy } from "@/lib/copy";
 import { isValidSlug } from "@/lib/slug";
@@ -14,32 +16,31 @@ function fill(text: string, values: Record<string, string>): string {
   return text.replace(/\{(\w+)\}/g, (_, k: string) => values[k] ?? "");
 }
 
-// Lê a conta indicada em ?de= e monta o texto com o nome e o e-mail do dono.
-async function PrivacyContent({ searchParams }: { searchParams: PageProps<"/privacidade">["searchParams"] }) {
+// Bloco do dono da página de onde o convidado veio (só com ?de= válido e existente).
+async function AboutThisPage({ searchParams }: { searchParams: PageProps<"/privacidade">["searchParams"] }) {
   const de = (await searchParams).de;
   const slug = typeof de === "string" && isValidSlug(de) ? de : null;
   const contact = slug ? await getPrivacyContact(slug) : null;
-  const dono = contact?.nome_exibicao ?? t.ownerFallback;
+  if (!slug || !contact) return null;
+  const dono = contact.nome_exibicao;
   return (
-    <>
+    <section className={styles.legalBox}>
+      <h2 className={styles.legalHeading}>{t.aboutThisPage}</h2>
       <p>{fill(t.collected, { dono })}</p>
       <p>{fill(t.calendar, { dono })}</p>
       <p>{fill(t.retention, { dono })}</p>
-      <p>{contact ? <>{t.contact} <a href={`mailto:${contact.email}`}>{contact.email}</a>.</> : t.contactGeneric}</p>
-      {slug && contact ? <p><Link href={`/${slug}`}>{t.back}</Link></p> : null}
-    </>
+      <p>{t.contact} <a href={`mailto:${contact.email}`}>{contact.email}</a>.</p>
+      <p><Link href={`/${slug}`}>{t.back}</Link></p>
+    </section>
   );
 }
 
 export default function PrivacyPage({ searchParams }: PageProps<"/privacidade">) {
   return (
-    <main className={styles.page}>
-      <article className={`${styles.card} ${styles.cardNarrow} ${styles.prose}`}>
-        <h1 className={styles.ownerName}>{t.title}</h1>
-        <Suspense fallback={null}>
-          <PrivacyContent searchParams={searchParams} />
-        </Suspense>
-      </article>
-    </main>
+    <LegalPage
+      title={copy.legal.privacy}
+      sections={copy.legal.privacySections}
+      before={<Suspense fallback={null}><AboutThisPage searchParams={searchParams} /></Suspense>}
+    />
   );
 }

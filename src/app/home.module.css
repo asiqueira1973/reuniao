@@ -1,0 +1,12 @@
+/* Página inicial (spec v0.5): mesma direção visual da seção 16 — fundo cinza claro, cartões brancos,
+   tipografia grande, um único botão azul. */
+.page { min-height: 100dvh; background: var(--surface); padding: 56px 16px 32px; }
+.hero { max-width: 720px; margin: 0 auto 40px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.brand { margin: 0; font-size: 17px; font-weight: 700; color: var(--text-secondary); }
+.title { margin: 0; font-size: clamp(36px, 7vw, 56px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+.subtitle { margin: 0; max-width: 560px; font-size: 19px; line-height: 1.45; color: var(--text-secondary); }
+.cta { display: inline-flex; align-items: center; min-height: 48px; padding: 0 28px; margin-top: 8px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; text-decoration: none; }
+.features { list-style: none; margin: 0 auto 40px; padding: 0; max-width: 880px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; }
+.feature { background: var(--bg); border-radius: var(--radius-card); padding: 24px; min-width: 0; }
+.feature h2 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+.feature p { margin: 0; font-size: 16px; line-height: 1.45; color: var(--text-secondary); }

@@ -17,6 +17,11 @@ Agendamento pessoal (substituto do uso básico do Calendly). Especificação em 
 ## Variáveis
 Ver `.env.example` e a seção 18 do spec. Gere os segredos com `openssl rand -base64 32` (`TOKEN_ENC_KEY`, `SESSION_SECRET`, `CRON_SECRET`).
 
+## Cadastro aberto (spec v0.5)
+- `EMAILS_PERMITIDOS` vazia ou ausente = qualquer conta Google cria agenda. Definida = só os da lista (útil em dev).
+- `EMAILS_BLOQUEADOS`: e-mails barrados, separados por vírgula.
+- `CONTAS_NOVAS_POR_DIA`: freio de cadastro (padrão 50 nas últimas 24 h).
+
 ## Google Cloud (roteiro de cliques, uma vez só)
 Faça logado com a conta Google que vai **administrar** o app (pode ser o Gmail pessoal; o projeto serve para todas as contas, inclusive a da BBZ).
 1. https://console.cloud.google.com → seletor de projetos → **Novo projeto** → nome `minha-agenda` → Criar.

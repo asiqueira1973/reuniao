@@ -115,3 +115,17 @@ export async function upsertAccountFromGoogle(login: GoogleLogin): Promise<{ con
   }
   return { contaId: conta.id, created: true };
 }
+
+// Diz se já existe conta para este login Google (o limite diário só vale para conta nova, 8.10).
+export async function accountExistsForGoogle(sub: string): Promise<boolean> {
+  const { data, error } = await db().from("ag_contas").select("id").eq("google_sub", sub).maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
+// Conta as contas criadas desde um instante (freio de cadastro do épico 8.10).
+export async function countAccountsCreatedSince(since: Date): Promise<number> {
+  const { count, error } = await db().from("ag_contas").select("id", { count: "exact", head: true }).gte("criado_em", since.toISOString());
+  if (error) throw error;
+  return count ?? 0;
+}

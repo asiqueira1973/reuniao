@@ -2,7 +2,7 @@
 // Cada teste usa um google_sub único e apaga as próprias contas no fim (o banco local é compartilhado).
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/server/db/client";
 import { decryptSecret } from "@/server/google/crypto";
 import { verifySession } from "@/server/auth/session";
@@ -140,5 +140,53 @@ describe("GET /api/auth/google/callback (épico 8.1)", () => {
     await GET(callback());
     const { data } = await db().from("ag_conexoes_google").select("status, revogada_em, aviso_reconectar_enviado").eq("conta_id", conta.id).single();
     expect(data).toEqual({ status: "ativa", revogada_em: null, aviso_reconectar_enviado: false });
+  });
+});
+
+describe("cadastro aberto (épico 8.10, spec v0.5)", () => {
+  const saved = { ...process.env };
+  afterEach(() => {
+    process.env.EMAILS_PERMITIDOS = saved.EMAILS_PERMITIDOS;
+    process.env.EMAILS_BLOQUEADOS = saved.EMAILS_BLOQUEADOS;
+    process.env.CONTAS_NOVAS_POR_DIA = saved.CONTAS_NOVAS_POR_DIA;
+  });
+
+  it("sem EMAILS_PERMITIDOS, qualquer e-mail Google cria conta", async () => {
+    delete process.env.EMAILS_PERMITIDOS;
+    const sub = `sub-${randomUUID()}`;
+    mockGoogle({ sub, email: `qualquer-${sub.slice(4, 12)}@teste.dev` });
+    const res = await GET(callback());
+    expect(res.headers.get("location")).toBe("http://localhost:3020/painel/tipos");
+    expect(await accountBySub(sub)).toHaveLength(1);
+  });
+
+  it("e-mail em EMAILS_BLOQUEADOS → sem_acesso e nada gravado", async () => {
+    delete process.env.EMAILS_PERMITIDOS;
+    process.env.EMAILS_BLOQUEADOS = "spam@teste.dev, outro-spam@teste.dev";
+    const sub = `sub-${randomUUID()}`;
+    mockGoogle({ sub, email: "Spam@Teste.dev" });
+    const res = await GET(callback());
+    expect(res.headers.get("location")).toBe("http://localhost:3020/entrar?erro=sem_acesso");
+    expect(await accountBySub(sub)).toHaveLength(0);
+  });
+
+  it("limite diário de contas novas: e-mail novo → cadastros_pausados; quem já tem conta entra", async () => {
+    delete process.env.EMAILS_PERMITIDOS;
+    const existing = `sub-${randomUUID()}`;
+    mockGoogle({ sub: existing, email: `antiga-${existing.slice(4, 12)}@teste.dev` });
+    await GET(callback());
+    const since = new Date(Date.now() - 24 * 3600_000).toISOString();
+    const { count } = await db().from("ag_contas").select("id", { count: "exact", head: true }).gte("criado_em", since);
+    process.env.CONTAS_NOVAS_POR_DIA = String(count);
+
+    const fresh = `sub-${randomUUID()}`;
+    mockGoogle({ sub: fresh, email: `nova-${fresh.slice(4, 12)}@teste.dev` });
+    const blocked = await GET(callback());
+    expect(blocked.headers.get("location")).toBe("http://localhost:3020/entrar?erro=cadastros_pausados");
+    expect(await accountBySub(fresh)).toHaveLength(0);
+
+    mockGoogle({ sub: existing, email: `antiga-${existing.slice(4, 12)}@teste.dev` });
+    const again = await GET(callback());
+    expect(again.headers.get("location")).toBe("http://localhost:3020/painel/tipos");
   });
 });

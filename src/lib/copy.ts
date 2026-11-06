@@ -8,6 +8,7 @@ export const copy = {
     button: "Entrar com Google",
     errors: {
       sem_acesso: "Este e-mail não tem acesso.",
+      cadastros_pausados: "Cadastros pausados por hoje. Tente amanhã.", // spec v0.5 (8.10)
       escopos: "Para funcionar, marque as duas permissões de agenda.",
       falha: "Não consegui consultar a agenda agora. Tente de novo em instantes.",
     },
@@ -266,8 +267,9 @@ export const copy = {
     deleteButton: "Excluir conta",
   },
   privacy: {
-    // Seção 20 (LGPD). Textos a aprovar (8.9).
+    // Seção 20 (LGPD). Textos a aprovar (8.9). Bloco "sobre esta agenda" da /privacidade?de={slug}.
     title: "Privacidade",
+    aboutThisPage: "Sobre esta agenda",
     link: "Privacidade",
     collected: "Quando você marca uma reunião por esta página, guardo seu nome, seu e-mail, seu fuso horário e a observação que você escrever. Eles servem só para marcar a reunião e avisar você e {dono}.",
     calendar: "A agenda do Google de {dono} é consultada apenas para mostrar os horários livres. Nada dela é guardado.",
@@ -276,6 +278,155 @@ export const copy = {
     contactGeneric: "Para pedir a exclusão dos seus dados, escreva para a pessoa com quem você marcou a reunião.",
     ownerFallback: "a pessoa com quem você marcou",
     back: "Voltar",
+  },
+  home: {
+    // Página inicial (spec v0.5, épico 8.12). A aprovar.
+    title: "Sua agenda em um link.",
+    subtitle: "Mande o seu link e as pessoas marcam reunião com você nos horários livres do seu Google Agenda. Grátis.",
+    cta: "Entrar com Google",
+    features: [
+      { title: "Só horários livres", text: "O Reunião consulta o seu Google Agenda e nunca oferece um horário em que você já está ocupado." },
+      { title: "Convite e Meet na hora", text: "A reunião entra na sua agenda com link do Google Meet, e o convite chega para quem marcou." },
+      { title: "Cancelar e remarcar sem conversa", text: "Quem marcou recebe um link para cancelar ou trocar o horário. Você é avisado por e-mail." },
+      { title: "Do seu jeito", text: "Tipos de reunião, dias e horários de atendimento, folgas e feriados nacionais, tudo configurável." },
+    ],
+    madeBy: "Um produto DabLab",
+  },
+  legal: {
+    // Spec v0.5 (8.12). Rascunho para revisão jurídica. A aprovar.
+    company: "DabLab — Alexandre da Silva de Siqueira LTDA - ME, CNPJ 61.033.268/0001-14, São Paulo/SP",
+    contactEmail: "alexandre@dablab.com.br",
+    updated: "Última atualização: 5 de novembro de 2026.",
+    terms: "Termos de uso",
+    privacy: "Política de privacidade",
+    footerAgree: "Ao entrar, você concorda com os Termos de uso e a Política de privacidade.",
+    privacySections: [
+      {
+        title: "Quem somos",
+        paragraphs: [
+          "O Reunião (reuniao.app.br) é um serviço gratuito de agendamento da DabLab — Alexandre da Silva de Siqueira LTDA - ME, CNPJ 61.033.268/0001-14, com sede em São Paulo/SP.",
+          "Para qualquer assunto sobre privacidade, escreva para alexandre@dablab.com.br.",
+        ],
+      },
+      {
+        title: "Se você tem uma agenda no Reunião",
+        paragraphs: [
+          "Guardamos o seu nome, o seu e-mail e o identificador da sua conta Google; as configurações que você faz (endereço, tipos de reunião, horários, fuso, mensagem); e a autorização de acesso ao seu Google Agenda, sempre cifrada.",
+          "Usamos esses dados para manter a sua conta, mostrar os seus horários livres na sua página, criar, alterar e cancelar os eventos das reuniões marcadas e mandar os avisos por e-mail. A base legal é a execução do contrato que você aceita nos Termos de uso (LGPD, art. 7º, V).",
+        ],
+      },
+      {
+        title: "O que fazemos com o seu Google Agenda",
+        paragraphs: [
+          "O Reunião pede só duas permissões: ver quando você está livre ou ocupado, para não oferecer horários em que você já tem compromisso; e criar e gerenciar os eventos que o próprio Reunião cria para as reuniões marcadas.",
+          "Não lemos título, descrição, local nem participantes dos seus outros compromissos. O livre/ocupado é consultado na hora e não é guardado.",
+          "O uso e a transferência, pelo Reunião, de informações recebidas das APIs do Google seguem a Política de Dados do Usuário dos Serviços de API do Google, incluindo os requisitos de Uso Limitado.",
+          "Não vendemos esses dados, não os usamos para publicidade nem para treinar modelos de inteligência artificial, e ninguém os lê, a não ser quando você pede ajuda, para segurança ou quando a lei exigir.",
+        ],
+      },
+      {
+        title: "Se você marcou uma reunião",
+        paragraphs: [
+          "Guardamos o nome, o e-mail, o fuso horário e a observação que você escreveu. Eles servem para marcar a reunião, criar o convite no Google Agenda de quem você agendou e mandar os e-mails de confirmação, cancelamento e remarcação.",
+          "Quem decide sobre esses dados é o dono da agenda com quem você marcou; o Reunião os trata em nome dele. Você pode pedir a exclusão a ele ou a nós.",
+        ],
+      },
+      {
+        title: "Com quem compartilhamos",
+        paragraphs: [
+          "Só com os serviços que fazem o Reunião funcionar: Google (agenda e Meet), Resend (envio de e-mails), Vercel (hospedagem) e Supabase (banco de dados). Alguns ficam fora do Brasil, com garantias contratuais de proteção de dados. Não vendemos dados a ninguém.",
+        ],
+      },
+      {
+        title: "Por quanto tempo",
+        paragraphs: [
+          "Os dados da sua conta ficam guardados enquanto ela existir. Os dados das reuniões são anonimizados 24 meses depois da data da reunião. O convite que foi para o Google Agenda segue as regras do Google.",
+          "Quando você exclui a sua conta, revogamos o acesso ao seu Google Agenda e apagamos os seus dados e os das reuniões. Os eventos já criados no seu Google Agenda continuam lá.",
+        ],
+      },
+      {
+        title: "Segurança",
+        paragraphs: [
+          "A autorização do Google é guardada cifrada, o acesso aos dados é restrito ao servidor do Reunião e todas as conexões usam HTTPS.",
+        ],
+      },
+      {
+        title: "Seus direitos",
+        paragraphs: [
+          "Pela LGPD, você pode pedir confirmação de que tratamos os seus dados, acesso, correção, exclusão, portabilidade e informações sobre o compartilhamento. Escreva para alexandre@dablab.com.br. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).",
+          "Você pode retirar o acesso do Reunião ao seu Google a qualquer momento em myaccount.google.com/permissions, ou excluir a sua conta em Conta, no painel.",
+        ],
+      },
+      {
+        title: "Cookies",
+        paragraphs: [
+          "Usamos só cookies essenciais: o da sessão de quem entra no painel e um de curta duração para mostrar a confirmação de uma reserva. Não usamos cookies de rastreamento nem de publicidade.",
+        ],
+      },
+      {
+        title: "Mudanças",
+        paragraphs: [
+          "Se esta política mudar de forma importante, avisaremos por e-mail ou no próprio Reunião.",
+        ],
+      },
+    ],
+    termsSections: [
+      {
+        title: "O serviço",
+        paragraphs: [
+          "O Reunião (reuniao.app.br) é um serviço gratuito da DabLab — Alexandre da Silva de Siqueira LTDA - ME, CNPJ 61.033.268/0001-14, São Paulo/SP — que permite publicar um link de agendamento ligado ao seu Google Agenda. Ao entrar no Reunião, você aceita estes Termos e a Política de privacidade.",
+        ],
+      },
+      {
+        title: "Sua conta",
+        paragraphs: [
+          "Para ter uma agenda, você entra com uma conta Google e autoriza o acesso ao seu Google Agenda. Você precisa ter 18 anos ou mais e é responsável pelo que acontece na sua conta e pelas informações da sua página.",
+        ],
+      },
+      {
+        title: "Gratuito e sem garantia",
+        paragraphs: [
+          "O Reunião é oferecido de graça, como está. Fazemos o possível para que funcione bem, mas não garantimos que estará sempre disponível ou sem erros. Podemos mudar, suspender ou encerrar o serviço; se for encerrado, avisaremos com antecedência razoável para você se organizar.",
+        ],
+      },
+      {
+        title: "Uso permitido",
+        paragraphs: [
+          "Não é permitido usar o Reunião para enviar spam, enganar pessoas, se passar por outra pessoa ou empresa, coletar dados de terceiros sem base legal, fazer qualquer coisa ilegal ou tentar burlar a segurança ou os limites do serviço.",
+        ],
+      },
+      {
+        title: "Dados das pessoas que marcam com você",
+        paragraphs: [
+          "Você é o responsável (controlador) pelos dados das pessoas que marcam reunião pela sua página, e o Reunião os trata em seu nome, como descrito na Política de privacidade. Use esses dados só para as reuniões.",
+        ],
+      },
+      {
+        title: "Suspensão e exclusão",
+        paragraphs: [
+          "Podemos suspender ou excluir contas que violem estes Termos ou coloquem o serviço ou outras pessoas em risco. Você pode excluir a sua conta quando quiser, em Conta, no painel.",
+        ],
+      },
+      {
+        title: "Responsabilidade",
+        paragraphs: [
+          "Na medida permitida pela lei, a DabLab não responde por perdas causadas por reuniões não realizadas, horários marcados com informações erradas, falhas do Google, do e-mail ou de outros serviços de terceiros, nem pelo conteúdo que os usuários publicam.",
+        ],
+      },
+      {
+        title: "Mudanças nestes Termos",
+        paragraphs: [
+          "Se estes Termos mudarem de forma importante, avisaremos por e-mail ou no próprio Reunião. Continuar usando depois do aviso significa aceitar a nova versão.",
+        ],
+      },
+      {
+        title: "Lei e foro",
+        paragraphs: [
+          "Estes Termos seguem as leis do Brasil. Fica eleito o foro da comarca de São Paulo/SP, ressalvado o direito do consumidor de propor ação no foro do seu domicílio.",
+          "Dúvidas: alexandre@dablab.com.br.",
+        ],
+      },
+    ],
   },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",

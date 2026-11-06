@@ -70,14 +70,16 @@ Enums:
 | `/{slug}/{tipo}` | `GET /api/disponibilidade`, `POST /api/reservas` | todas as de disponibilidade + `ag_reservas`, `ag_notificacoes` (+ Google freebusy/events, Resend) |
 | `/{slug}/{tipo}/confirmado` | — (cookie curto `ag_confirmacao`) | `ag_reservas` |
 | `/r/{token}`, `/r/{token}/remarcar` | `GET /api/reservas/gestao`, `POST …/cancelar`, `POST …/remarcar`, `GET /api/disponibilidade?remarcar=` | `ag_reservas`, `ag_notificacoes` (+ Google, Resend) |
-| `/privacidade?de={slug}` | — | `ag_contas` (nome e e-mail de contato) |
+| `/` (página inicial, v0.5) | — (com sessão, o proxy manda para `/painel/tipos`) | — |
+| `/privacidade` (`?de={slug}` opcional) | — | `ag_contas` (nome e e-mail de contato do dono, só com `?de=`) |
+| `/termos` | — | — |
 | (cron) | `GET /api/cron/diario` (Bearer `CRON_SECRET`) | `ag_reservas`, `ag_notificacoes`; lê `ag_contas` e `ag_conexoes_google` (+ Google delete/patch, Resend) |
 
 O `src/proxy.ts` protege `/painel/*` (sessão no cookie `ag_sessao`, renovada após 7 dias) e devolve 404 real para `/{slug}` e `/{slug}/{tipo}` inexistentes.
 
 ## 5. Lógica das ações principais
 
-**Login (8.1).** `state` aleatório em cookie de 10 min; troca o `code`, valida o `id_token`, exige os dois escopos de agenda e um refresh token, e o e-mail em `EMAILS_PERMITIDOS`. Conta nova: slug da parte local do e-mail (com `-2`, `-3`… se ocupado), 10 faixas seg–sex 10:30–12:00 e 14:30–18:00, tipo "Reunião de 30 minutos" e 4 feriados desligados. Login de novo: troca o token e volta a conexão para `ativa` (é o "Reconectar"). Erros voltam a `/entrar?erro=sem_acesso|escopos|falha`.
+**Login (8.1; v0.5, 8.10).** Cadastro aberto: sem `EMAILS_PERMITIDOS`, qualquer conta Google entra; `EMAILS_BLOQUEADOS` barra e-mails; conta **nova** acima de `CONTAS_NOVAS_POR_DIA` (padrão 50) nas últimas 24 h vê `erro=cadastros_pausados`. `state` aleatório em cookie de 10 min; troca o `code`, valida o `id_token`, exige os dois escopos de agenda e um refresh token, e o e-mail em `EMAILS_PERMITIDOS`. Conta nova: slug da parte local do e-mail (com `-2`, `-3`… se ocupado), 10 faixas seg–sex 10:30–12:00 e 14:30–18:00, tipo "Reunião de 30 minutos" e 4 feriados desligados. Login de novo: troca o token e volta a conexão para `ativa` (é o "Reconectar"). Erros voltam a `/entrar?erro=sem_acesso|escopos|falha`.
 
 **Horários livres (8.4).** `computeSlots` (puro, `src/features/availability/compute.ts`) cruza faixas da semana (ou exceção da data), feriados ativos, antecedência, janela, passo, intervalos e os ocupados (freebusy do Google + reservas ativas). Google fora ou conexão revogada → nenhum horário e a mensagem da seção 15 (nunca oferece horário sem consultar o Google). Pedido limitado a 42 dias.
 

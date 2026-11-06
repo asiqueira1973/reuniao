@@ -2,7 +2,8 @@
 // 1) Painel: checagem otimista; /painel sem cookie de sessão válido vai para /entrar e o cookie
 //    com mais de 7 dias é renovado. A autorização de verdade é feita por requireConta() /
 //    getCurrentAccount().
-// 2) Páginas públicas (/{slug}, /{slug}/{tipo}, /{slug}/{tipo}/confirmado): confere conta e tipo
+// 2) "/" (página inicial, v0.5): com sessão, vai para o painel.
+// 3) Páginas públicas (/{slug}, /{slug}/{tipo}, /{slug}/{tipo}/confirmado): confere conta e tipo
 //    antes de a página começar a ser enviada, porque página com streaming responde sempre 200;
 //    endereço inexistente é reescrito para a página 404 com status 404 (critério 8.5).
 import { NextResponse, type NextRequest } from "next/server";
@@ -25,6 +26,11 @@ async function guardPanel(request: NextRequest) {
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   if (path === "/painel" || path.startsWith("/painel/")) return guardPanel(request);
+  // Página inicial (v0.5): quem já tem sessão vai direto para o painel.
+  if (path === "/") {
+    const session = await verifySession(request.cookies.get(SESSION_COOKIE)?.value);
+    return session ? NextResponse.redirect(new URL("/painel/tipos", request.url)) : NextResponse.next();
+  }
 
   const match = PUBLIC_PATH.exec(path);
   if (!match || (RESERVED_ACCOUNT_SLUGS as readonly string[]).includes(match[1])) return NextResponse.next();
@@ -35,5 +41,5 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Painel e qualquer caminho que possa ser uma página pública (fora de api, _next, arquivos e
   // das rotas do app).
-  matcher: ["/painel", "/painel/:path*", "/((?!api|_next|entrar|sair|r/|.*\\..*).+)"],
+  matcher: ["/", "/painel", "/painel/:path*", "/((?!api|_next|entrar|sair|r/|.*\\..*).+)"],
 };
