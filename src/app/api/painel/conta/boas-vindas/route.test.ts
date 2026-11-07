@@ -61,3 +61,13 @@ describe("conta suspensa no painel (8.13)", () => {
     expect((await getConta(apiRequest("/api/painel/conta", { cookie: b.cookie }))).status).toBe(200);
   });
 });
+
+describe("saída das boas-vindas (bug B-02)", () => {
+  it("conta sem aceite consegue se excluir pela rota da conta", async () => {
+    const { DELETE } = await import("../route");
+    const c = await createTestAccount("bv-sai");
+    expect((await getAccountById(c.id))!.termsAcceptedAt).toBeNull();
+    const res = await DELETE(apiRequest("/api/painel/conta", { method: "DELETE", cookie: c.cookie, body: { confirmacao: c.slug } }));
+    expect(res.status).toBe(200);
+    expect((await db().from("ag_contas").select("id").eq("id", c.id)).data).toHaveLength(0);
+  });
