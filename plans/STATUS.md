@@ -35,7 +35,7 @@ Atenção: os domínios dos outros apps (agendapsi, editoria, mentor1on1, supaba
 - Login e freebusy conferidos em local e produção (conta DabLab reconectada).
 - BBZ (`asq@bbz.com.br`) reconectada no projeto novo; endereço fica `asq` (decisão do Alexandre). Conta do Gmail (`alexandre-silva-siqueira`) apagada por SQL em 06/11/2026 a pedido do Alexandre (sem reuniões).
 - (histórico) Precisava entrar de novo: `alexandre.silva.siqueira@gmail.com` (slug `alexandre-silva-siqueira`, boas-vindas pendentes). Sem isso, a página delas fica "Agenda temporariamente indisponível".
-- Falta no projeto novo: Data Access (escopos, justificativa), vídeo regravado com o client_id novo, Search Console (dar a `alexandre@dablab.com.br` acesso de proprietário a reuniao.app.br) e o envio para verificação.
+- Projeto novo: Search Console (alexandre@dablab.com.br Owner de reuniao.app.br), Data Access (escopos e justificativa) e **Branding verificado em 06/11/2026** ("Reunião" já aparece no login). Falta: vídeo regravado com o client_id novo, colar no Data Access e enviar em Verification Center → Prepare for verification.
 
 ## Bug B-02 (a corrigir)
 A tela de boas-vindas não tem saída: sem aceitar os Termos, a pessoa não consegue sair nem excluir a conta (o painel inteiro fica escondido). Corrigir com "Sair" e "Não quero usar — excluir minha conta" nas boas-vindas. Achado em 06/11/2026 ao tentar apagar a conta do Gmail.
