@@ -25,6 +25,8 @@ Ver `.env.example` e a seção 18 do spec. Gere os segredos com `openssl rand -b
 - Limite de reservas por IP (Vercel → Firewall → **Add Rule**): se `Request Path` igual a `/api/reservas` e `Method` igual a `POST`, então **Rate Limit**, 10 requisições por 60 s por IP, ação `Deny` (429).
 
 ## Google Cloud (roteiro de cliques, uma vez só)
+
+> **Situação atual (06/11/2026):** projeto **Reunião** (número 113158864946) na conta Google **alexandre@dablab.com.br**, só com o cliente do Reunião. O projeto antigo DabLab (dablab-473020, conta pessoal) não é mais usado pelo Reunião.
 Faça logado com a conta Google que vai **administrar** o app (pode ser o Gmail pessoal; o projeto serve para todas as contas, inclusive a da BBZ).
 1. https://console.cloud.google.com → seletor de projetos → **Novo projeto** → nome `minha-agenda` → Criar.
 2. **APIs e serviços → Biblioteca** → procure **Google Calendar API** → **Ativar**.

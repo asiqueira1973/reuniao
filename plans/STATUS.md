@@ -29,3 +29,9 @@ Feito no projeto DabLab (dablab-473020): Branding preenchido (home dablab.com.br
 Travado por um bug conhecido do console: "Your branding is not being shown to users" sem botão "Verify branding". Saída: tópico em https://discuss.google.dev (Cloud Foundations & Onboarding → OAuth App Verification) com o project ID, pedindo para publicar o branding.
 Enquanto isso: o app funciona com o aviso "app não verificado" e o limite de 100 usuários do projeto. `EMAILS_PERMITIDOS` continua preenchida na Vercel (cadastro ainda restrito).
 Atenção: os domínios dos outros apps (agendapsi, editoria, mentor1on1, supabase.co, flutterflow.app) saíram dos domínios autorizados; conferir se o login desses apps continua funcionando.
+
+## Projeto Google novo (06/11/2026)
+- O Reunião saiu do projeto DabLab (dablab-473020) e foi para um projeto próprio, **Reunião** (113158864946), na conta `alexandre@dablab.com.br`: Branding "Reunião", página inicial e privacidade em reuniao.app.br, Calendar API ativada, cliente Web com os redirects de produção e localhost. `GOOGLE_CLIENT_ID`/`SECRET` trocados no `.env.local` e na Vercel.
+- Login e freebusy conferidos em local e produção (conta DabLab reconectada).
+- Contas criadas com o cliente antigo precisam entrar de novo: `asq@bbz.com.br` (slug `asq`) e `alexandre.silva.siqueira@gmail.com` (slug `alexandre-silva-siqueira`, boas-vindas pendentes). Sem isso, a página delas fica "Agenda temporariamente indisponível".
+- Falta no projeto novo: Data Access (escopos, justificativa), vídeo regravado com o client_id novo, Search Console (dar a `alexandre@dablab.com.br` acesso de proprietário a reuniao.app.br) e o envio para verificação.
