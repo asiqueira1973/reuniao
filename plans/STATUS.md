@@ -33,5 +33,9 @@ Atenção: os domínios dos outros apps (agendapsi, editoria, mentor1on1, supaba
 ## Projeto Google novo (06/11/2026)
 - O Reunião saiu do projeto DabLab (dablab-473020) e foi para um projeto próprio, **Reunião** (113158864946), na conta `alexandre@dablab.com.br`: Branding "Reunião", página inicial e privacidade em reuniao.app.br, Calendar API ativada, cliente Web com os redirects de produção e localhost. `GOOGLE_CLIENT_ID`/`SECRET` trocados no `.env.local` e na Vercel.
 - Login e freebusy conferidos em local e produção (conta DabLab reconectada).
-- BBZ (`asq@bbz.com.br`) reconectada no projeto novo; endereço fica `asq` (decisão do Alexandre). Ainda precisa entrar de novo: `alexandre.silva.siqueira@gmail.com` (slug `alexandre-silva-siqueira`, boas-vindas pendentes). Sem isso, a página delas fica "Agenda temporariamente indisponível".
+- BBZ (`asq@bbz.com.br`) reconectada no projeto novo; endereço fica `asq` (decisão do Alexandre). Conta do Gmail (`alexandre-silva-siqueira`) apagada por SQL em 06/11/2026 a pedido do Alexandre (sem reuniões).
+- (histórico) Precisava entrar de novo: `alexandre.silva.siqueira@gmail.com` (slug `alexandre-silva-siqueira`, boas-vindas pendentes). Sem isso, a página delas fica "Agenda temporariamente indisponível".
 - Falta no projeto novo: Data Access (escopos, justificativa), vídeo regravado com o client_id novo, Search Console (dar a `alexandre@dablab.com.br` acesso de proprietário a reuniao.app.br) e o envio para verificação.
+
+## Bug B-02 (a corrigir)
+A tela de boas-vindas não tem saída: sem aceitar os Termos, a pessoa não consegue sair nem excluir a conta (o painel inteiro fica escondido). Corrigir com "Sair" e "Não quero usar — excluir minha conta" nas boas-vindas. Achado em 06/11/2026 ao tentar apagar a conta do Gmail.
