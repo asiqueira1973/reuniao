@@ -436,6 +436,12 @@ export const copy = {
     acceptBefore: "Li e aceito os ",
     acceptBetween: " e a ",
     submit: "Começar",
+    // Saída das boas-vindas (bug B-02). A aprovar.
+    signOut: "Sair",
+    decline: "Não quero usar o Reunião",
+    declineConfirm: "Isso apaga a sua conta e desconecta o Google. Continuar?",
+    declineButton: "Excluir minha conta",
+    cancel: "Cancelar",
   },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",

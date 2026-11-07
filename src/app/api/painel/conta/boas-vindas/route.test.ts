@@ -71,3 +71,4 @@ describe("saída das boas-vindas (bug B-02)", () => {
     expect(res.status).toBe(200);
     expect((await db().from("ag_contas").select("id").eq("id", c.id)).data).toHaveLength(0);
   });
+});

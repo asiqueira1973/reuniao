@@ -4,3 +4,6 @@
 .accept { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.4; }
 .accept input { margin: 2px 0 0; width: 18px; height: 18px; flex: none; accent-color: var(--accent); }
 .page { max-width: 640px; margin: 0 auto; padding: 40px 16px 48px; }
+
+/* Saída das boas-vindas (bug B-02): separada do formulário por um traço fino. */
+.exit { margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--hairline); }

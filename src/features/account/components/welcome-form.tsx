@@ -2,6 +2,8 @@
 // Boas-vindas do primeiro acesso — spec v0.5, épico 8.11. Nome, endereço (checagem ao digitar, como
 // na tela Conta), fuso e o aceite dos Termos e da Privacidade. "Começar" fica desabilitado sem o
 // aceite. POST /api/painel/conta/boas-vindas; depois, recarrega o painel (Tipos de evento).
+// Saída (bug B-02): "Sair" (POST /sair) ou "Não quero usar o Reunião" → confirmação → DELETE
+// /api/painel/conta com o endereço da própria conta → página inicial.
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiErrorText, copy } from "@/lib/copy";
@@ -20,6 +22,7 @@ export function WelcomeForm({ initial, timeZones, siteUrl }: Props) {
   const [slugFree, setSlugFree] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [declining, setDeclining] = useState(false);
 
   const slug = normalizeSlug(values.slug);
   const slugChanged = slug !== initial.slug;
@@ -53,6 +56,21 @@ export function WelcomeForm({ initial, timeZones, siteUrl }: Props) {
     window.location.replace("/painel/tipos");
   }
 
+  // Exclui a conta sem aceitar (mesma rota da tela Conta, confirmação = endereço atual).
+  async function onDecline() {
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/painel/conta", {
+      method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ confirmacao: initial.slug }),
+    }).catch(() => null);
+    if (!res?.ok) {
+      setBusy(false);
+      setError(apiErrorText(res ? (await res.json().catch(() => ({}))).erro : null));
+      return;
+    }
+    window.location.replace("/");
+  }
+
   const prefix = `${siteUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "")}/`;
   const slugError = !slugFormatOk
     ? (isReservedAccountSlug(slug) ? copy.errors.slug_reservado : copy.errors.slug_invalido)
@@ -60,6 +78,7 @@ export function WelcomeForm({ initial, timeZones, siteUrl }: Props) {
   const zones = timeZones.includes(values.fuso) ? timeZones : [values.fuso, ...timeZones];
 
   return (
+    <>
     <form className={styles.form} onSubmit={onSubmit} noValidate>
       <div>
         <h1 className={own.title}>{w.title}</h1>
@@ -100,6 +119,23 @@ export function WelcomeForm({ initial, timeZones, siteUrl }: Props) {
         <button type="submit" className={styles.primaryButton} disabled={busy || !accepted || !!slugError || !values.nome_exibicao.trim()}>{w.submit}</button>
         {error ? <span role="status" className={styles.errorText}>{error}</span> : null}
       </div>
+      <div className={own.exit}>
+        {declining ? (
+          <div className={styles.actions} role="alertdialog" aria-label={w.declineConfirm}>
+            <span>{w.declineConfirm}</span>
+            <button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void onDecline()}>{w.declineButton}</button>
+            <button type="button" className={styles.secondaryButton} onClick={() => setDeclining(false)}>{w.cancel}</button>
+          </div>
+        ) : (
+          <div className={styles.actions}>
+            <button type="button" className={styles.secondaryButton} onClick={() => setDeclining(true)}>{w.decline}</button>
+            <button type="submit" form="welcome-sign-out" className={styles.secondaryButton}>{w.signOut}</button>
+          </div>
+        )}
+      </div>
     </form>
+    {/* "Sair" é POST /sair (nunca link); o botão acima aponta para este formulário pelo id. */}
+    <form id="welcome-sign-out" method="post" action="/sair" hidden />
+    </>
   );
 }

@@ -37,5 +37,5 @@ Atenção: os domínios dos outros apps (agendapsi, editoria, mentor1on1, supaba
 - (histórico) Precisava entrar de novo: `alexandre.silva.siqueira@gmail.com` (slug `alexandre-silva-siqueira`, boas-vindas pendentes). Sem isso, a página delas fica "Agenda temporariamente indisponível".
 - Projeto novo: Search Console (alexandre@dablab.com.br Owner de reuniao.app.br), Data Access (escopos e justificativa) e **Branding verificado em 06/11/2026** ("Reunião" já aparece no login). Vídeo novo (https://www.youtube.com/watch?v=2oBWUjSB-M8, 06/11) e **pedido de verificação enviado em 06/11/2026**: "Your app's data access is under review". Resposta por e-mail em alexandre@dablab.com.br.
 
-## Bug B-02 (a corrigir)
+## Bug B-02 (corrigido em 06/11/2026: "Sair" e "Não quero usar o Reunião" nas boas-vindas; ver plans/bugs/B-02)
 A tela de boas-vindas não tem saída: sem aceitar os Termos, a pessoa não consegue sair nem excluir a conta (o painel inteiro fica escondido). Corrigir com "Sair" e "Não quero usar — excluir minha conta" nas boas-vindas. Achado em 06/11/2026 ao tentar apagar a conta do Gmail.
