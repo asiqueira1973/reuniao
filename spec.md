@@ -941,7 +941,7 @@ O agente de código **para e pergunta** ao cruzar com qualquer item abaixo.
 | # | Pergunta | Quem decide | Até quando |
 |---|---|---|---|
 | 25.1 | ~~Nome do produto e domínio~~ **Respondida (03/11/2026):** domínio **`reuniao.app.br`** (comprado pelo Alexandre). Produção: `NEXT_PUBLIC_SITE_URL=https://reuniao.app.br`, remetente `agenda@reuniao.app.br` (domínio verificado no Resend), redirect do OAuth `https://reuniao.app.br/api/auth/google/callback`. Dev: `localhost:3020`, remetente de teste `onboarding@resend.dev`. Nome exibido do produto: **Reunião** (04/11/2026) | — | — |
-| 25.2 | ~~Slug de cada conta~~ **Respondida:** Gmail pessoal → `alexandre`; BBZ → `alexandre-bbz`. O `seed:calendly` aceita `--slug` para gravar o endereço junto com os tipos | — | — |
+| 25.2 | ~~Slug de cada conta~~ **Respondida:** Gmail pessoal → `alexandre`; BBZ → `alexandre-bbz`. **Atualizado em 06/11/2026:** em produção, `alexandre` ficou com a conta DabLab (`alexandre@dablab.com.br`) e a BBZ ficou com `asq` (decisão do Alexandre). O `seed:calendly` aceita `--slug` para gravar o endereço junto com os tipos | — | — |
 | 25.3 | ~~Contato de privacidade~~ **Respondida:** o e-mail da própria conta (`ag_contas.email`) da página que o convidado está vendo | — | — |
 | 25.4 | ~~App aberto~~ **Respondida (05/11/2026):** produto gratuito da DabLab, aberto de uma vez, só pt-BR; Google Cloud no projeto DabLab (guarda-chuva); controladora dos dados dos donos: DabLab, contato `alexandre@dablab.com.br`, foro São Paulo/SP. Plano em `plans/9.0-app-aberto.md` | — | — |
 

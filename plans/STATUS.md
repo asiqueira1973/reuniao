@@ -33,5 +33,5 @@ Atenção: os domínios dos outros apps (agendapsi, editoria, mentor1on1, supaba
 ## Projeto Google novo (06/11/2026)
 - O Reunião saiu do projeto DabLab (dablab-473020) e foi para um projeto próprio, **Reunião** (113158864946), na conta `alexandre@dablab.com.br`: Branding "Reunião", página inicial e privacidade em reuniao.app.br, Calendar API ativada, cliente Web com os redirects de produção e localhost. `GOOGLE_CLIENT_ID`/`SECRET` trocados no `.env.local` e na Vercel.
 - Login e freebusy conferidos em local e produção (conta DabLab reconectada).
-- Contas criadas com o cliente antigo precisam entrar de novo: `asq@bbz.com.br` (slug `asq`) e `alexandre.silva.siqueira@gmail.com` (slug `alexandre-silva-siqueira`, boas-vindas pendentes). Sem isso, a página delas fica "Agenda temporariamente indisponível".
+- BBZ (`asq@bbz.com.br`) reconectada no projeto novo; endereço fica `asq` (decisão do Alexandre). Ainda precisa entrar de novo: `alexandre.silva.siqueira@gmail.com` (slug `alexandre-silva-siqueira`, boas-vindas pendentes). Sem isso, a página delas fica "Agenda temporariamente indisponível".
 - Falta no projeto novo: Data Access (escopos, justificativa), vídeo regravado com o client_id novo, Search Console (dar a `alexandre@dablab.com.br` acesso de proprietário a reuniao.app.br) e o envio para verificação.
