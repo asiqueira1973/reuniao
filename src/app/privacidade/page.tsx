@@ -1,6 +1,7 @@
 // [Público] Política de privacidade — seção 20 e spec v0.5 (épico 8.12): política completa em nome
 // da DabLab. Com ?de={slug}, mostra antes o bloco "Sobre esta agenda", com o contato do dono
 // daquela página (pergunta 25.3).
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { LegalPage } from "@/components/legal/legal-page";
@@ -8,6 +9,10 @@ import styles from "@/features/booking/components/public.module.css";
 import { copy } from "@/lib/copy";
 import { isValidSlug } from "@/lib/slug";
 import { getPrivacyContact } from "@/server/db/public";
+
+// Página institucional: legível por robôs (bug B-03, revisão do OAuth do Google). O layout raiz
+// continua noindex para o resto do app.
+export const metadata: Metadata = { robots: { index: true, follow: true } };
 
 const t = copy.privacy;
 

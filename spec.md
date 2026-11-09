@@ -769,7 +769,7 @@ Assuntos dos e-mails:
 | Acessibilidade | contraste AA, toque ≥ 44 px, calendário navegável por teclado (setas) e com `aria-label` por dia ("terça, 4 de novembro, 9 horários"), foco visível |
 | Idioma | pt-BR; datas "terça-feira, 4 de novembro"; 24 h |
 | Offline | não suportado |
-| SEO | `noindex` em todas as páginas (assunção 24.8) |
+| SEO | `noindex` por padrão; página inicial, privacidade e termos indexáveis e `/robots.txt` (assunção 24.8, emenda v0.5) |
 
 ---
 
@@ -927,6 +927,7 @@ Sem analytics no MVP (a contagem vem de `ag_reservas`).
 | 24.6 | Cancelar se faz pelo app; evento apagado direto no Google não libera o horário no app | sincronização exige push do Google | v2 |
 | 24.7 | Dono não remarca pelo painel; cancela com motivo e o convidado marca de novo | raro; mantém o painel simples | Remarcar pelo dono na v2 |
 | 24.8 | Todas as páginas com `noindex` (não aparecem no Google) | link é compartilhado diretamente | Liberar indexação da página da conta |
+| 24.8 (v0.5, 09/11/2026) | **Emenda:** página inicial, `/privacidade` e `/termos` com `index, follow` e `/robots.txt` de verdade (bloqueia `/painel`, `/r/`, `/api/`); o resto continua `noindex`. Motivo: a revisão do OAuth do Google não conseguia ler as páginas (bug B-03) | — | — |
 | 24.9 | Exclusão de dados de um convidado a pedido é feita pelo agente/manual na v1 | pedido raríssimo | Botão "apagar dados" no detalhe da reunião |
 | 24.10 | Feriados: os 8 do seu Calendly + Sexta-feira Santa e Consciência Negra ligados; Carnaval, Cinzas e Corpus Christi desligados | Consciência Negra é feriado nacional desde 2024; os outros são ponto facultativo | Liga/desliga na tela |
 | 24.11 | Sem lembrete por e-mail do app | o Google Agenda já lembra | v2 |

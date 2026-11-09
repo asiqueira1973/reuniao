@@ -1,9 +1,14 @@
 // [Público] Página inicial — spec v0.5, épico 8.12: o que é o Reunião, "Entrar com Google" e
 // rodapé com Privacidade, Termos e DabLab. Quem tem sessão é mandado ao painel pelo proxy.
+import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalFooter } from "@/components/legal/legal-page";
 import { copy } from "@/lib/copy";
 import styles from "./home.module.css";
+
+// Página institucional: legível por robôs (bug B-03, revisão do OAuth do Google). O layout raiz
+// continua noindex para o resto do app.
+export const metadata: Metadata = { robots: { index: true, follow: true } };
 
 export default function HomePage() {
   const t = copy.home;

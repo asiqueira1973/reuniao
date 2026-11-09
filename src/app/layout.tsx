@@ -1,4 +1,5 @@
-// Layout raiz: idioma pt-BR, tokens visuais (seção 16) e noindex em todas as páginas (assunção 24.8).
+// Layout raiz: idioma pt-BR, tokens visuais (seção 16) e noindex por padrão (assunção 24.8). Página
+// inicial, privacidade e termos sobrepõem com index (v0.5, bug B-03).
 import type { Metadata } from "next";
 import { copy } from "@/lib/copy";
 import "./globals.css";
