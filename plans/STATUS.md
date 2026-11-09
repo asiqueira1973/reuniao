@@ -39,3 +39,8 @@ Atenção: os domínios dos outros apps (agendapsi, editoria, mentor1on1, supaba
 
 ## Bug B-02 (corrigido em 06/11/2026: "Sair" e "Não quero usar o Reunião" nas boas-vindas; ver plans/bugs/B-02)
 A tela de boas-vindas não tem saída: sem aceitar os Termos, a pessoa não consegue sair nem excluir a conta (o painel inteiro fica escondido). Corrigir com "Sair" e "Não quero usar — excluir minha conta" nas boas-vindas. Achado em 06/11/2026 ao tentar apagar a conta do Gmail.
+
+## Revisão do Google (09/11/2026)
+- E-mail de 08/11 do Third-Party Data Safety Team: página inicial e privacidade "unresponsive" e vídeo sem as permissões abertas. No painel: Branding e "Request minimum scopes" aprovados; Homepage e Privacy policy com pendência; App functionality pendente.
+- Causa das páginas: `noindex, nofollow` em todo o site e sem robots.txt (bug B-03, corrigido e no ar em 09/11).
+- Vídeo novo: https://youtu.be/0H4Xp1D6FhI (09/11). Resposta enviada pelo Alexandre direto no e-mail do Google em 09/11. Próximo passo: aguardar o retorno em alexandre@dablab.com.br.
