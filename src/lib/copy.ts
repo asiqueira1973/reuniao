@@ -321,6 +321,7 @@ export const copy = {
         paragraphs: [
           "O Reunião pede só duas permissões: ver quando você está livre ou ocupado, para não oferecer horários em que você já tem compromisso; e criar e gerenciar os eventos que o próprio Reunião cria para as reuniões marcadas.",
           "Não lemos título, descrição, local nem participantes dos seus outros compromissos. O livre/ocupado é consultado na hora e não é guardado.",
+          "Dados do Google que o Reunião guarda: o seu nome, o seu e-mail e o identificador da sua conta Google; a autorização de acesso (refresh token), cifrada; e, de cada evento que o próprio Reunião cria, o identificador do evento e o link do Google Meet, para poder remarcar ou cancelar aquele evento. Nada mais da sua agenda é guardado.",
           "O uso e a transferência, pelo Reunião, de informações recebidas das APIs do Google seguem a Política de Dados do Usuário dos Serviços de API do Google, incluindo os requisitos de Uso Limitado.",
           "Não vendemos esses dados, não os usamos para publicidade nem para treinar modelos de inteligência artificial, e ninguém os lê, a não ser quando você pede ajuda, para segurança ou quando a lei exigir.",
         ],
@@ -368,6 +369,18 @@ export const copy = {
         title: "Mudanças",
         paragraphs: [
           "Se esta política mudar de forma importante, avisaremos por e-mail ou no próprio Reunião.",
+        ],
+      },      {
+        // Resumo em inglês para a revisão do OAuth do Google (09/11/2026). A aprovar.
+        title: "Google user data — summary in English",
+        paragraphs: [
+          "Access: Reunião requests openid, email, profile, calendar.freebusy and calendar.events.owned. It reads the user's name, email address and Google account ID; the free/busy intervals of the primary calendar; and the events that Reunião itself creates.",
+          "Use: free/busy is used only to show bookable time slots on the user's public page; it is queried on demand and never stored. calendar.events.owned is used only to create the meeting event (with Google Meet and the guest as attendee) when someone books, and to update or delete that same event when the meeting is rescheduled or cancelled. Reunião never reads or changes events it did not create.",
+          "Storage: we store the user's name, email address, Google account ID, the OAuth refresh token (encrypted with AES-256-GCM), and the event ID and Google Meet link of each event Reunião created. Nothing else from the user's calendar is stored.",
+          "Sharing: Google user data is not sold and is not shared with third parties, except the service providers that run Reunião: Vercel (hosting), Supabase (database) and Resend (sends the booking emails, which include the Google Meet link). It is not used for advertising and it is not used to develop, improve or train AI/ML models.",
+          "Protection: data is accessed only by Reunião's server, all connections use HTTPS, database access is restricted, and the refresh token is encrypted at rest.",
+          "Retention and deletion: data is kept while the account exists. Deleting the account in Reunião (Conta → Excluir conta) revokes Reunião's access to the Google account and deletes all stored data. Users can also revoke access at any time at myaccount.google.com/permissions. Booking data is anonymized 24 months after the meeting.",
+          "Limited Use: Reunião's use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. Contact: alexandre@dablab.com.br.",
         ],
       },
     ],
