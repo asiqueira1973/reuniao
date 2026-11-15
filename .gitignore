@@ -45,3 +45,15 @@ next-env.d.ts
 !.env.example
 supabase/.branches
 supabase/.temp
+
+# --- Segredos e credenciais (nunca versionar) ---
+GoogleService-Info.plist
+google-services.json
+*.p8
+*.p12
+*.mobileprovision
+*.keystore
+*.jks
+key.properties
+local.properties
+secrets/

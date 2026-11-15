@@ -1,33 +1,79 @@
-# Reunião (reuniao.app.br)
+# Reunião
 
-Agendamento pessoal (substituto do uso básico do Calendly). Especificação em `spec.md`; guia do agente em `CLAUDE.md`.
+Agendamento online gratuito: cada pessoa tem um endereço público onde os outros reservam horário na sua agenda do Google. É uma versão enxuta do Calendly.
 
-## Setup local
+Site: https://reuniao.app.br
+
+## Principais funcionalidades
+
+- Login com Google, que já conecta a agenda. Cada conta tem endereço próprio (`/{slug}`).
+- Tipos de evento com duração, descrição, Google Meet, antecedência mínima, janela de dias, intervalo entre reuniões e passo dos horários. Podem ficar visíveis ou ocultos.
+- Disponibilidade semanal com várias faixas por dia, datas específicas e feriados nacionais do Brasil com liga/desliga.
+- Consulta livre/ocupado na agenda principal do Google para não oferecer horário ocupado.
+- Reserva pelo convidado no fuso dele, com criação do evento no Google Agenda e link do Meet.
+- E-mails de confirmação, cancelamento e remarcação pelo Resend.
+- Link secreto para o convidado ver, cancelar ou remarcar a reserva.
+- Painel do dono com tipos de evento, reuniões, disponibilidade e conta. Modo claro e escuro.
+
+## Stack técnica
+
+- Next.js 16 (App Router) com React 19 e TypeScript
+- Supabase (Postgres com RLS; o acesso é só pelo servidor)
+- Google OAuth e Google Calendar API (refresh token cifrado no banco)
+- Resend para e-mails
+- Vercel (hospedagem e cron diário)
+- Zod, date-fns, jose
+- Vitest e pgTAP para testes
+
+## Como foi construído
+
+Desenvolvido com Claude (Anthropic) a partir de uma especificação SDD: [spec.md](spec.md). Os planos de cada épico ficam em [plans/](plans/) e a documentação técnica em [DOCUMENTACAO-TECNICA.md](DOCUMENTACAO-TECNICA.md).
+
+- Testes unitários com Vitest (`src/**/*.test.ts`) e testes de banco com pgTAP (`supabase/tests/`), incluindo RLS.
+- `npm run verify` roda typecheck, lint, testes e build.
+- Hooks do Claude Code em `.claude/hooks/` que protegem migrations versionadas, segredos e testes, e lembram de rodar os advisors do Supabase.
+- Um agente verificador em `.claude/agents/verifier.md`.
+- Regras para o agente em [CLAUDE.md](CLAUDE.md).
+
+## Status
+
+Publicado em https://reuniao.app.br.
+
+## Licença
+
+O código está disponível apenas para leitura e estudo. Veja [LICENSE](LICENSE).
+
+## Contribuições
+
+Issues são bem-vindas; pull requests não são aceitos. Veja [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Como rodar e implantar
+
+### Setup local
 1. Node 22, Docker e Supabase CLI instalados.
 2. `npm install`
 3. `cp .env.example .env.local` e preencha (ver "Variáveis").
 4. `supabase start` (portas 554xx) e `supabase migration up --local`.
 5. `npm run dev` → http://localhost:3020
 
-## Comandos
+### Comandos
 - `npm run verify`: typecheck → lint → testes (pgTAP local + Vitest) → build.
 - `npm run seed:calendly -- <email> [--slug <slug>]`: grava os 5 tipos de evento do Calendly numa conta existente (entre com o Google uma vez antes) e, com `--slug`, troca o endereço público. Pode rodar de novo sem duplicar.
 - `npm run db:types`: regenera `src/server/db/types.ts` a partir do banco local.
 
-## Variáveis
+### Variáveis
 Ver `.env.example` e a seção 18 do spec. Gere os segredos com `openssl rand -base64 32` (`TOKEN_ENC_KEY`, `SESSION_SECRET`, `CRON_SECRET`).
 
-## Cadastro aberto (spec v0.5)
+### Cadastro aberto (spec v0.5)
 - `EMAILS_PERMITIDOS` vazia ou ausente = qualquer conta Google cria agenda. Definida = só os da lista (útil em dev).
 - `EMAILS_BLOQUEADOS`: e-mails barrados, separados por vírgula.
 - `CONTAS_NOVAS_POR_DIA`: freio de cadastro (padrão 50 nas últimas 24 h).
 - Suspender uma conta por abuso (SQL no Supabase): `update ag_contas set suspensa_em = now() where slug = 'fulano';` — reativar: `set suspensa_em = null`.
 - Limite de reservas por IP (Vercel → Firewall → **Add Rule**): se `Request Path` igual a `/api/reservas` e `Method` igual a `POST`, então **Rate Limit**, 10 requisições por 60 s por IP, ação `Deny` (429).
 
-## Google Cloud (roteiro de cliques, uma vez só)
+### Google Cloud (roteiro de cliques, uma vez só)
 
-> **Situação atual (06/11/2026):** projeto **Reunião** (número 113158864946) na conta Google **alexandre@dablab.com.br**, só com o cliente do Reunião. O projeto antigo DabLab (dablab-473020, conta pessoal) não é mais usado pelo Reunião.
-Faça logado com a conta Google que vai **administrar** o app (pode ser o Gmail pessoal; o projeto serve para todas as contas, inclusive a da BBZ).
+Faça logado com a conta Google que vai **administrar** o app.
 1. https://console.cloud.google.com → seletor de projetos → **Novo projeto** → nome `minha-agenda` → Criar.
 2. **APIs e serviços → Biblioteca** → procure **Google Calendar API** → **Ativar**.
 3. **Google Auth Platform → Branding** (ou "Tela de consentimento OAuth"): nome do app `Reunião`, e-mail de suporte e e-mail de contato do desenvolvedor = o seu. Salvar.
@@ -43,12 +89,12 @@ No primeiro login o Google mostra "O Google não verificou este app" → **Avan�
 
 No passo 3 (Branding), em **Domínios autorizados**, acrescente `reuniao.app.br`.
 
-## Resend (e-mails)
+### Resend (e-mails)
 1. https://resend.com → **Domains → Add domain** → `reuniao.app.br`.
 2. No registro.br (DNS do domínio), crie os registros que o Resend mostrar: TXT de DKIM (`resend._domainkey`), MX e TXT de SPF em `send`, e um TXT `_dmarc` com `v=DMARC1; p=none;`. Não precisa ligar "Enable receiving".
 3. Espere o Resend marcar **Verified** e crie uma **API key** (Sending access) → `RESEND_API_KEY`. Remetente: `EMAIL_REMETENTE=agenda@reuniao.app.br`.
 
-## Deploy na Vercel
+### Deploy na Vercel
 1. https://vercel.com → **Add New → Project** → importe `asiqueira1973/minha-agenda` (framework Next.js, sem mudar comandos).
 2. **Settings → Environment Variables** (Production): copie do `.env.local` todas as variáveis de `.env.example`, trocando:
    - `NEXT_PUBLIC_SITE_URL=https://reuniao.app.br`
@@ -61,9 +107,11 @@ No passo 3 (Branding), em **Domínios autorizados**, acrescente `reuniao.app.br`
 6. Entre em `https://reuniao.app.br/entrar` com o Google (o banco remoto é outro: a conta nasce de novo) e rode o seed apontando para o remoto:
    `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run seed:calendly -- <email> --slug alexandre`
 
-## Checklist de entrega (seção 26)
+### Checklist de entrega (seção 26)
 - [ ] Google Cloud em "Em produção", dois escopos de agenda, redirect de produção.
 - [ ] Resend com domínio verificado (SPF/DKIM/DMARC).
 - [ ] Vercel com domínio, variáveis e cron ativo.
 - [ ] Login em produção, reserva de teste com outro e-mail, cancelamento pelo link.
 - [ ] Documentação: `DOCUMENTACAO-TECNICA.md`, `CLAUDE.md`, este README.
+
+Feito pela [Dab Lab](https://www.dablab.com.br/) — agência de inovação no-code para startups e PMEs, com automações usando IA.
