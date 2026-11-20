@@ -32,7 +32,7 @@ beforeAll(async () => {
 afterAll(() => deleteTestAccounts([conta.id]));
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
-  vi.setSystemTime(new Date("2026-11-08T12:00:00Z"));
+  vi.setSystemTime(new Date("2031-11-02T12:00:00Z"));
 });
 afterEach(() => vi.useRealTimers());
 
@@ -40,12 +40,12 @@ describe("rescheduleByGuest — corrida no INSERT", () => {
   it("23P01 vira horario_indisponivel e a reserva original continua confirmada", async () => {
     const { token, hash } = newManageToken();
     const base = { conta_id: conta.id, tipo_evento_id: tipoId, nome_convidado: "Ana", email_convidado: "ana@teste.dev", fuso_convidado: "America/Sao_Paulo", status: "confirmada" as const };
-    const { data: mine } = await db().from("ag_reservas").insert({ ...base, inicio: "2026-11-10T17:30:00Z", fim: "2026-11-10T18:30:00Z", token_hash: hash, google_evento_id: "ag1" }).select("id").single();
+    const { data: mine } = await db().from("ag_reservas").insert({ ...base, inicio: "2031-11-04T17:30:00Z", fim: "2031-11-04T18:30:00Z", token_hash: hash, google_evento_id: "ag1" }).select("id").single();
     // Outra reserva já ocupa o horário novo, mas a revalidação (simulada) diz que está livre.
-    await db().from("ag_reservas").insert({ ...base, inicio: "2026-11-11T18:00:00Z", fim: "2026-11-11T19:00:00Z", token_hash: `outra-${mine!.id}` });
-    vi.mocked(availability.getAvailability).mockResolvedValue({ fuso_conta: "America/Sao_Paulo", dias: [{ data: "2026-11-11", horarios: ["2026-11-11T18:00:00.000Z"] }] } as never);
+    await db().from("ag_reservas").insert({ ...base, inicio: "2031-11-05T18:00:00Z", fim: "2031-11-05T19:00:00Z", token_hash: `outra-${mine!.id}` });
+    vi.mocked(availability.getAvailability).mockResolvedValue({ fuso_conta: "America/Sao_Paulo", dias: [{ data: "2031-11-05", horarios: ["2031-11-05T18:00:00.000Z"] }] } as never);
 
-    await expect(rescheduleByGuest(token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "horario_indisponivel" });
+    await expect(rescheduleByGuest(token, "2031-11-05T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "horario_indisponivel" });
     const { data } = await db().from("ag_reservas").select("status").eq("id", mine!.id).single();
     expect(data!.status).toBe("confirmada");
     expect(events.patchEvent).not.toHaveBeenCalled();

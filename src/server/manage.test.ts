@@ -1,5 +1,5 @@
 // Testes da gestão pelo convidado (critérios 8.6, seção 12) com Google e Resend simulados e o
-// Supabase local. Relógio fixo: domingo 08/11/2026 09:00 de Brasília.
+// Supabase local. Relógio fixo: domingo 02/11/2031 09:00 de Brasília (datas 5 anos à frente, mesmo dia da semana: o relógio do banco é real).
 import { createHash } from "node:crypto";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/server/db/client";
@@ -24,7 +24,7 @@ const { cancelByGuest, getManageView, rescheduleByGuest } = await import("./mana
 const { getAvailability } = await import("./availability");
 
 let conta: Awaited<ReturnType<typeof createTestAccount>>;
-const SLOT = "2026-11-10T17:30:00.000Z"; // ter 14:30 Brasília
+const SLOT = "2031-11-04T17:30:00.000Z"; // ter 14:30 Brasília
 const GUEST = { nome: "Ana Teste", email: "ana@teste.dev", observacao: null, fuso: "America/Sao_Paulo" };
 
 beforeAll(async () => {
@@ -40,7 +40,7 @@ afterAll(() => deleteTestAccounts([conta.id]));
 
 beforeEach(async () => {
   vi.useFakeTimers({ toFake: ["Date"] });
-  vi.setSystemTime(new Date("2026-11-08T12:00:00Z"));
+  vi.setSystemTime(new Date("2031-11-02T12:00:00Z"));
   vi.mocked(calendar.queryFreeBusy).mockReset().mockResolvedValue([]);
   vi.mocked(events.insertEvent).mockReset().mockImplementation(async (_c, i) => ({ eventId: events.eventIdFor(i.reservaId), meetLink: "https://meet.google.com/aaa-bbbb-ccc" }));
   vi.mocked(events.patchEvent).mockReset().mockResolvedValue();
@@ -69,7 +69,7 @@ describe("getManageView (critérios 8.6)", () => {
     const view = await getManageView(r.token);
     expect(view.state).toBe("active");
     if (view.state === "active") expect(view.r.link_meet).toBe("https://meet.google.com/aaa-bbbb-ccc");
-    expect((await getManageView(r.token, new Date("2026-11-10T17:30:00Z"))).state).toBe("past");
+    expect((await getManageView(r.token, new Date("2031-11-04T17:30:00Z"))).state).toBe("past");
   });
 });
 
@@ -83,7 +83,7 @@ describe("cancelByGuest", () => {
     expect(events.deleteEvent).toHaveBeenCalledWith(conta.id, events.eventIdFor(r.id));
     const mail = vi.mocked(resend.sendEmail).mock.calls[0][0];
     expect(mail.to).toBe(`${conta.slug}@teste.dev`);
-    expect(mail.subject).toBe("Cancelada: Ana Teste · 10/11 14:30");
+    expect(mail.subject).toBe("Cancelada: Ana Teste · 04/11 14:30");
     expect(mail.text).toContain("Surgiu um imprevisto");
     expect((await getManageView(r.token)).state).toBe("cancelled");
   });
@@ -97,14 +97,14 @@ describe("cancelByGuest", () => {
     const r = await booked();
     await cancelByGuest(r.token, null);
     await expect(cancelByGuest(r.token, null)).rejects.toMatchObject({ code: "transicao_invalida" });
-    const r2 = await booked("2026-11-11T17:30:00.000Z");
-    await expect(cancelByGuest(r2.token, null, new Date("2026-11-11T17:30:00Z"))).rejects.toMatchObject({ code: "reuniao_iniciada" });
+    const r2 = await booked("2031-11-05T17:30:00.000Z");
+    await expect(cancelByGuest(r2.token, null, new Date("2031-11-05T17:30:00Z"))).rejects.toMatchObject({ code: "reuniao_iniciada" });
     await expect(cancelByGuest("x", null)).rejects.toMatchObject({ code: "nao_encontrado" });
   });
   it("o horário cancelado volta a ficar livre", async () => {
     const r = await booked();
     await cancelByGuest(r.token, null);
-    const a = await getAvailability({ accountSlug: conta.slug, typeSlug: "reuniao-1h", from: "2026-11-10", to: "2026-11-10" });
+    const a = await getAvailability({ accountSlug: conta.slug, typeSlug: "reuniao-1h", from: "2031-11-04", to: "2031-11-04" });
     expect(a.dias[0].horarios).toContain(SLOT);
   });
 });
@@ -114,7 +114,7 @@ describe("corrida cancelar × remarcar (verifier 8.6)", () => {
     const r = await booked();
     let rescheduleResult: unknown = null;
     vi.mocked(events.deleteEvent).mockImplementation(async () => {
-      rescheduleResult = await rescheduleByGuest(r.token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo").catch((e) => e);
+      rescheduleResult = await rescheduleByGuest(r.token, "2031-11-05T18:00:00.000Z", "America/Sao_Paulo").catch((e) => e);
     });
     await cancelByGuest(r.token, null);
     expect(rescheduleResult).toMatchObject({ code: "transicao_invalida" });
@@ -135,21 +135,21 @@ describe("rescheduleByGuest (seção 12)", () => {
       // O horário antigo ficou livre (antiga 'remarcada'): outra reserva o ocupa antes do desfazer.
       const tipoId = (await row(r.id)).tipo_evento_id;
       await db().from("ag_reservas").insert({
-        conta_id: conta.id, tipo_evento_id: tipoId, inicio: SLOT, fim: "2026-11-10T18:30:00.000Z", nome_convidado: "Bia",
+        conta_id: conta.id, tipo_evento_id: tipoId, inicio: SLOT, fim: "2031-11-04T18:30:00.000Z", nome_convidado: "Bia",
         email_convidado: "bia@teste.dev", fuso_convidado: "America/Sao_Paulo", status: "confirmada", token_hash: `outra-${r.id}`,
       });
       throw new calendar.CalendarError("servico_indisponivel");
     });
-    await expect(rescheduleByGuest(r.token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "servico_indisponivel" });
+    await expect(rescheduleByGuest(r.token, "2031-11-05T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "servico_indisponivel" });
     expect((await row(r.id)).status).toBe("remarcada");
     const mail = vi.mocked(resend.sendEmail).mock.calls.map(([m]) => m).find((m) => m.to === `${conta.slug}@teste.dev`);
-    expect(mail?.subject).toBe("Cancelada: Ana Teste · 10/11 14:30");
+    expect(mail?.subject).toBe("Cancelada: Ana Teste · 04/11 14:30");
   });
   it("remarca: nova reserva, patch no mesmo evento com link novo, antiga remarcada, e-mails", async () => {
     const r = await booked();
-    const NEW = "2026-11-11T18:00:00.000Z"; // qua 15:00
+    const NEW = "2031-11-05T18:00:00.000Z"; // qua 15:00
     const res = await rescheduleByGuest(r.token, NEW, "Europe/Lisbon");
-    expect(res).toMatchObject({ inicio: NEW, fim: "2026-11-11T19:00:00.000Z", link_meet: "https://meet.google.com/aaa-bbbb-ccc", slug: conta.slug, tipo: "reuniao-1h" });
+    expect(res).toMatchObject({ inicio: NEW, fim: "2031-11-05T19:00:00.000Z", link_meet: "https://meet.google.com/aaa-bbbb-ccc", slug: conta.slug, tipo: "reuniao-1h" });
 
     expect((await row(r.id)).status).toBe("remarcada");
     const nova = await row(res.id);
@@ -157,46 +157,46 @@ describe("rescheduleByGuest (seção 12)", () => {
 
     const [, eventId, patch] = vi.mocked(events.patchEvent).mock.calls[0];
     expect(eventId).toBe(events.eventIdFor(r.id));
-    expect(patch).toMatchObject({ start: NEW, end: "2026-11-11T19:00:00.000Z" });
+    expect(patch).toMatchObject({ start: NEW, end: "2031-11-05T19:00:00.000Z" });
     const newToken = /\/r\/([A-Za-z0-9_-]{43})/.exec(patch.description!)![1];
     expect(createHash("sha256").update(newToken).digest("hex")).toBe(nova.token_hash);
     expect(newToken).not.toBe(r.token);
 
     const sent = vi.mocked(resend.sendEmail).mock.calls.map(([m]) => m);
     expect(sent.find((m) => m.to === "ana@teste.dev")!.text).toContain(`/r/${newToken}`);
-    expect(sent.find((m) => m.to === `${conta.slug}@teste.dev`)!.subject).toBe("Remarcada: Ana Teste · 10/11 14:30 → 11/11 15:00");
+    expect(sent.find((m) => m.to === `${conta.slug}@teste.dev`)!.subject).toBe("Remarcada: Ana Teste · 04/11 14:30 → 05/11 15:00");
 
     const old = await getManageView(r.token);
     expect(old.state).toBe("rescheduled");
     if (old.state === "rescheduled") expect(new Date(old.newStart!).toISOString()).toBe(NEW);
     // O horário antigo fica livre.
-    const a = await getAvailability({ accountSlug: conta.slug, typeSlug: "reuniao-1h", from: "2026-11-10", to: "2026-11-10" });
+    const a = await getAvailability({ accountSlug: conta.slug, typeSlug: "reuniao-1h", from: "2031-11-04", to: "2031-11-04" });
     expect(a.dias[0].horarios).toContain(SLOT);
   });
   it("adiar 30 min uma reunião de 1 h (cruza o próprio horário) funciona", async () => {
     const r = await booked();
-    const res = await rescheduleByGuest(r.token, "2026-11-10T18:00:00.000Z", "America/Sao_Paulo");
+    const res = await rescheduleByGuest(r.token, "2031-11-04T18:00:00.000Z", "America/Sao_Paulo");
     expect((await row(res.id)).status).toBe("confirmada");
   });
   it("horário tomado no meio do caminho → horario_indisponivel e reserva original intacta", async () => {
     const r = await booked();
     // Outro compromisso no Google no horário novo.
-    vi.mocked(calendar.queryFreeBusy).mockResolvedValue([{ inicio: "2026-11-11T18:00:00Z", fim: "2026-11-11T19:00:00Z" }]);
-    await expect(rescheduleByGuest(r.token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "horario_indisponivel" });
+    vi.mocked(calendar.queryFreeBusy).mockResolvedValue([{ inicio: "2031-11-05T18:00:00Z", fim: "2031-11-05T19:00:00Z" }]);
+    await expect(rescheduleByGuest(r.token, "2031-11-05T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "horario_indisponivel" });
     expect((await row(r.id)).status).toBe("confirmada");
     expect(events.patchEvent).not.toHaveBeenCalled();
   });
   it("corrida: outra reserva pega o horário novo depois da revalidação → horario_indisponivel e original intacta", async () => {
     const r = await booked();
-    const other = await booked("2026-11-12T17:30:00.000Z");
+    const other = await booked("2031-11-06T17:30:00.000Z");
     void other;
-    await expect(rescheduleByGuest(r.token, "2026-11-12T17:30:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "horario_indisponivel" });
+    await expect(rescheduleByGuest(r.token, "2031-11-06T17:30:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "horario_indisponivel" });
     expect((await row(r.id)).status).toBe("confirmada");
   });
   it("Google falha no patch → nova falhou e antiga volta a confirmada", async () => {
     const r = await booked();
     vi.mocked(events.patchEvent).mockRejectedValue(new calendar.CalendarError("servico_indisponivel"));
-    await expect(rescheduleByGuest(r.token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "servico_indisponivel" });
+    await expect(rescheduleByGuest(r.token, "2031-11-05T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "servico_indisponivel" });
     expect((await row(r.id)).status).toBe("confirmada");
     const { data } = await db().from("ag_reservas").select("status").eq("remarcada_de_id", r.id);
     expect(data).toEqual([{ status: "falhou" }]);
@@ -204,6 +204,6 @@ describe("rescheduleByGuest (seção 12)", () => {
   it("só reserva confirmada e futura pode ser remarcada", async () => {
     const r = await booked();
     await cancelByGuest(r.token, null);
-    await expect(rescheduleByGuest(r.token, "2026-11-11T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "transicao_invalida" });
+    await expect(rescheduleByGuest(r.token, "2031-11-05T18:00:00.000Z", "America/Sao_Paulo")).rejects.toMatchObject({ code: "transicao_invalida" });
   });
 });

@@ -25,7 +25,7 @@ const { POST: reschedule } = await import("./remarcar/route");
 const { GET: availability } = await import("../../disponibilidade/route");
 
 let conta: Awaited<ReturnType<typeof createTestAccount>>;
-const SLOT = "2026-11-10T17:30:00.000Z";
+const SLOT = "2031-11-04T17:30:00.000Z";
 
 beforeAll(async () => {
   conta = await createTestAccount("gestao-rota");
@@ -39,7 +39,7 @@ beforeAll(async () => {
 afterAll(() => deleteTestAccounts([conta.id]));
 beforeEach(async () => {
   vi.useFakeTimers({ toFake: ["Date"] });
-  vi.setSystemTime(new Date("2026-11-08T12:00:00Z"));
+  vi.setSystemTime(new Date("2031-11-02T12:00:00Z"));
   vi.mocked(calendar.queryFreeBusy).mockReset().mockResolvedValue([]);
   vi.mocked(events.insertEvent).mockReset().mockImplementation(async (_c, i) => ({ eventId: events.eventIdFor(i.reservaId), meetLink: null }));
   vi.mocked(events.patchEvent).mockReset().mockResolvedValue();
@@ -83,22 +83,22 @@ describe("rotas de gestão", () => {
   });
   it("remarcar: 201 com a reserva nova e cookie da tela de confirmado; horário tomado → 409", async () => {
     const r = await book();
-    const res = await post(reschedule, "/api/reservas/gestao/remarcar", { token: r.token, inicio: "2026-11-11T18:00:00Z", fuso: "America/Sao_Paulo" });
+    const res = await post(reschedule, "/api/reservas/gestao/remarcar", { token: r.token, inicio: "2031-11-05T18:00:00Z", fuso: "America/Sao_Paulo" });
     expect(res.status).toBe(201);
     expect(res.headers.get("set-cookie")).toMatch(/ag_confirmacao=/);
     const body = await res.json();
-    expect(body.inicio).toBe("2026-11-11T18:00:00.000Z");
+    expect(body.inicio).toBe("2031-11-05T18:00:00.000Z");
     expect(body).not.toHaveProperty("token");
-    expect((await post(reschedule, "/api/reservas/gestao/remarcar", { token: r.token, inicio: "2026-11-12T18:00:00Z", fuso: "America/Sao_Paulo" })).status).toBe(409);
+    expect((await post(reschedule, "/api/reservas/gestao/remarcar", { token: r.token, inicio: "2031-11-06T18:00:00Z", fuso: "America/Sao_Paulo" })).status).toBe(409);
   });
   it("disponibilidade com remarcar=token mostra o horário da própria reunião como livre", async () => {
     const r = await book();
-    const url = (extra = "") => new NextRequest(`http://localhost:3020/api/disponibilidade?conta=${conta.slug}&tipo=reuniao-1h&de=2026-11-10&ate=2026-11-10${extra}`);
+    const url = (extra = "") => new NextRequest(`http://localhost:3020/api/disponibilidade?conta=${conta.slug}&tipo=reuniao-1h&de=2031-11-04&ate=2031-11-04${extra}`);
     const plain = (await (await availability(url())).json()).dias[0].horarios;
     expect(plain).not.toContain(SLOT);
     const withToken = (await (await availability(url(`&remarcar=${r.token}`))).json()).dias[0].horarios;
     expect(withToken).toContain(SLOT);
-    expect(withToken).toContain("2026-11-10T18:00:00.000Z");
+    expect(withToken).toContain("2031-11-04T18:00:00.000Z");
     // Token de outra coisa (ou inválido) não libera nada.
     expect((await (await availability(url("&remarcar=x"))).json()).dias[0].horarios).not.toContain(SLOT);
   });
