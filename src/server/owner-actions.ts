@@ -9,6 +9,7 @@ import { cancellationToGuest, cancelledToOwner, newBookingToOwner, reconnectToOw
 import { CalendarError } from "@/server/google/calendar";
 import { deleteEvent } from "@/server/google/events";
 import { MAX_ATTEMPTS, notifyReservation, redeliver } from "@/server/notifications";
+import { track } from "@/server/analytics/track";
 
 export type OwnerErrorCode = "nao_encontrado" | "transicao_invalida" | "reuniao_iniciada" | "servico_indisponivel" | "agenda_indisponivel" | "limite_tentativas";
 
@@ -69,6 +70,7 @@ export async function cancelByOwner(contaId: string, id: string, motivo: string 
     }
   }
 
+  track({ nome: "reuniao_reserva_cancelada", contaId, tela: "reunioes", descricao: "reunião cancelada", propriedades: { por: "dono", com_motivo: !!reason } });
   const conta = r.ag_contas!;
   await notifyReservation(contaId, id, "cancelamento_convidado", {
     to: r.email_convidado,

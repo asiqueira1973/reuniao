@@ -6,6 +6,7 @@ import { welcomeSchema } from "@/features/account/schema";
 import { requireConta } from "@/server/auth/require-conta";
 import { AccountError, completeWelcome } from "@/server/db/account-settings";
 import { apiError, parseBody } from "@/server/http";
+import { track } from "@/server/analytics/track";
 
 export async function POST(req: NextRequest) {
   const account = await requireConta(req);
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest) {
   if (body instanceof Response) return body;
   try {
     await completeWelcome(account.id, { nome_exibicao: body.nome_exibicao, slug: body.slug, fuso: body.fuso });
+    track({ nome: "reuniao_boas_vindas_concluidas", contaId: account.id, tela: "boas_vindas", descricao: "aceitou os Termos e concluiu o primeiro acesso", propriedades: { trocou_endereco: body.slug !== account.slug } });
     return Response.json({ ok: true });
   } catch (e) {
     if (e instanceof AccountError) return apiError(e.code, e.code === "slug_em_uso" ? 409 : 404);

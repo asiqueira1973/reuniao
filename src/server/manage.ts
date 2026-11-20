@@ -13,6 +13,7 @@ import { cancelledToOwner, confirmationToGuest, rescheduledToOwner } from "@/ser
 import { CalendarError } from "@/server/google/calendar";
 import { deleteEvent, patchEvent } from "@/server/google/events";
 import { notifyReservation } from "@/server/notifications";
+import { track } from "@/server/analytics/track";
 
 export type ManageErrorCode = "dados_invalidos" | "nao_encontrado" | "transicao_invalida" | "reuniao_iniciada" | "horario_indisponivel" | "servico_indisponivel" | "agenda_indisponivel";
 
@@ -100,6 +101,7 @@ export async function cancelByGuest(token: string, motivo: string | null, now = 
       ownerTimeZone: conta.fuso, start: new Date(r.inicio).toISOString(), reason,
     }),
   }).catch(() => undefined);
+  track({ nome: "reuniao_reserva_cancelada", contaId: r.conta_id, tela: "gerenciar_reuniao", descricao: "reunião cancelada", propriedades: { por: "convidado", com_motivo: !!reason } });
   return { ownerName: conta.nome_exibicao };
 }
 
@@ -194,5 +196,6 @@ export async function rescheduleByGuest(token: string, inicio: string, fuso: str
       }),
     }),
   ]);
+  track({ nome: "reuniao_reserva_remarcada", contaId: r.conta_id, tela: "gerenciar_reuniao", descricao: "convidado remarcou a reunião" });
   return { id: novaId, inicio: startIso, fim: end, link_meet: r.link_meet, slug: conta.slug, tipo: tipo.slug };
 }

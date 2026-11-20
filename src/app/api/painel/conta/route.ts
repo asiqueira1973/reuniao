@@ -8,6 +8,7 @@ import { requireConta } from "@/server/auth/require-conta";
 import { SESSION_COOKIE } from "@/server/auth/session";
 import { AccountError, deleteAccount, getAccountSettings, updateAccountSettings } from "@/server/db/account-settings";
 import { apiError, parseBody } from "@/server/http";
+import { track } from "@/server/analytics/track";
 
 const STATUS: Record<AccountError["code"], number> = { slug_em_uso: 409, confirmacao_invalida: 422, nao_encontrado: 404 };
 
@@ -42,6 +43,7 @@ export async function DELETE(req: NextRequest) {
   if (body instanceof Response) return body;
   try {
     await deleteAccount(account.id, body.confirmacao);
+    track({ nome: "reuniao_conta_excluida", contaId: account.id, tela: account.termsAcceptedAt ? "conta" : "boas_vindas", descricao: "dono excluiu a conta" });
   } catch (e) {
     if (e instanceof AccountError) return apiError(e.code, STATUS[e.code]);
     throw e;

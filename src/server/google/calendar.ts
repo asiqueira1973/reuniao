@@ -7,6 +7,7 @@ import "server-only";
 import { db } from "@/server/db/client";
 import { decryptSecret } from "./crypto";
 import { GOOGLE_TOKEN_URL } from "./oauth";
+import { track } from "@/server/analytics/track";
 
 export const FREEBUSY_URL = "https://www.googleapis.com/calendar/v3/freeBusy";
 export const GOOGLE_TIMEOUT_MS = 5000;
@@ -35,11 +36,14 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
 // uma vez só, controlado por aviso_reconectar_enviado.
 export async function markConnectionRevoked(contaId: string): Promise<void> {
   clearTokenCache(contaId);
-  await db()
+  const { data } = await db()
     .from("ag_conexoes_google")
     .update({ status: "revogada", revogada_em: new Date().toISOString() })
     .eq("conta_id", contaId)
-    .eq("status", "ativa");
+    .eq("status", "ativa")
+    .select("conta_id");
+  // Só na primeira vez (de ativa para revogada), para não repetir a cada consulta.
+  if (data?.length) track({ nome: "reuniao_conexao_revogada", contaId, tela: "pagina_publica", descricao: "o Google recusou o acesso à agenda; o dono precisa reconectar" });
 }
 
 // Devolve um access token válido da conta. Lança agenda_indisponivel se a conexão não está

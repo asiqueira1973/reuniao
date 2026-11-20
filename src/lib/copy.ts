@@ -363,6 +363,7 @@ export const copy = {
         title: "Cookies",
         paragraphs: [
           "Usamos só cookies essenciais: o da sessão de quem entra no painel e um de curta duração para mostrar a confirmação de uma reserva. Não usamos cookies de rastreamento nem de publicidade.",
+          "Para melhorar o Reunião, registramos eventos de uso (por exemplo, conta criada, tipo de reunião criado, reunião marcada ou cancelada) na Visão de Produto, a ferramenta de análise da própria DabLab. Esses eventos levam só um código interno da conta, sem nome, e-mail, dados do Google ou dados de quem marcou a reunião.",
         ],
       },
       {
@@ -379,6 +380,7 @@ export const copy = {
           "Storage: we store the user's name, email address, Google account ID, the OAuth refresh token (encrypted with AES-256-GCM), and the event ID and Google Meet link of each event Reunião created. Nothing else from the user's calendar is stored.",
           "Sharing: Google user data is not sold and is not shared with third parties, except the service providers that run Reunião: Vercel (hosting), Supabase (database) and Resend (sends the booking emails, which include the Google Meet link). It is not used for advertising and it is not used to develop, improve or train AI/ML models.",
           "Protection: data is accessed only by Reunião's server, all connections use HTTPS, database access is restricted, and the refresh token is encrypted at rest.",
+          "Usage analytics: we record product usage events (such as account created or meeting booked) in Visão de Produto, DabLab's own analytics tool. These events carry only an internal account ID; they contain no Google user data and no guest data.",
           "Retention and deletion: data is kept while the account exists. Deleting the account in Reunião (Conta → Excluir conta) revokes Reunião's access to the Google account and deletes all stored data. Users can also revoke access at any time at myaccount.google.com/permissions. Booking data is anonymized 24 months after the meeting.",
           "Limited Use: Reunião's use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. Contact: alexandre@dablab.com.br.",
         ],

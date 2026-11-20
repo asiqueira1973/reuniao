@@ -5,6 +5,7 @@ import { createEventTypeSchema } from "@/features/event-types/schema";
 import { requireConta } from "@/server/auth/require-conta";
 import { createEventType, EventTypeError, listEventTypes } from "@/server/db/event-types";
 import { apiError, parseBody } from "@/server/http";
+import { track } from "@/server/analytics/track";
 
 // GET: tipos não excluídos da conta, na ordem do painel.
 export async function GET(req: NextRequest) {
@@ -20,7 +21,9 @@ export async function POST(req: NextRequest) {
   const input = await parseBody(req, createEventTypeSchema);
   if (input instanceof Response) return input;
   try {
-    return Response.json({ tipo: await createEventType(account.id, input) }, { status: 201 });
+    const tipo = await createEventType(account.id, input);
+    track({ nome: "reuniao_tipo_criado", contaId: account.id, tela: "tipos_de_evento", descricao: "dono criou um tipo de reunião", propriedades: { duracao_min: input.duracao_min ?? null, com_meet: input.com_meet ?? null } });
+    return Response.json({ tipo }, { status: 201 });
   } catch (e) {
     if (e instanceof EventTypeError) return apiError(e.code, e.code === "slug_em_uso" ? 409 : 422);
     throw e;

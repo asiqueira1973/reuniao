@@ -11,6 +11,7 @@ import { SESSION_COOKIE, sessionCookieOptions, signSession } from "@/server/auth
 import { accountStatusForGoogle, countAccountsCreatedSince, upsertAccountFromGoogle } from "@/server/db/accounts";
 import { encryptSecret } from "@/server/google/crypto";
 import { exchangeCode, hasCalendarScopes, verifyIdToken } from "@/server/google/oauth";
+import { track } from "@/server/analytics/track";
 
 // Redireciona para /entrar com o código de erro e apaga o cookie de state.
 function fail(req: NextRequest, code: "sem_acesso" | "suspensa" | "cadastros_pausados" | "escopos" | "falha") {
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     if (!hasCalendarScopes(tokens.scopes)) return fail(req, "escopos");
     if (!tokens.refreshToken) return fail(req, "falha");
 
-    const { contaId } = await upsertAccountFromGoogle({
+    const { contaId, created } = await upsertAccountFromGoogle({
       sub: identity.sub,
       email: identity.email,
       name: identity.name,
@@ -51,6 +52,9 @@ export async function GET(req: NextRequest) {
       scopes: tokens.scopes,
     });
 
+    track(created
+      ? { nome: "reuniao_conta_criada", contaId, tela: "entrar", descricao: "conta nova criada no primeiro login com o Google" }
+      : { nome: "reuniao_login", contaId, tela: "entrar", descricao: "dono entrou com o Google" });
     const res = NextResponse.redirect(new URL("/painel/tipos", req.url), 302);
     res.cookies.set(SESSION_COOKIE, await signSession(contaId), sessionCookieOptions());
     res.cookies.delete({ name: OAUTH_STATE_COOKIE, path: OAUTH_STATE_PATH });

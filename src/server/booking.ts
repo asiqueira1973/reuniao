@@ -13,6 +13,7 @@ import { CalendarError } from "@/server/google/calendar";
 import { insertEvent, patchEvent } from "@/server/google/events";
 import { confirmationToGuest, newBookingToOwner } from "@/server/email/templates";
 import { notifyBookingConfirmed, notifyReservation } from "@/server/notifications";
+import { track } from "@/server/analytics/track";
 
 export const MAX_FUTURE_BOOKINGS_PER_EMAIL = 3;
 
@@ -129,6 +130,7 @@ export async function createBooking(input: BookingInput, now = new Date()): Prom
   } catch (e) {
     // Seção 12: processando → falhou; o horário volta a ficar livre.
     await db().from("ag_reservas").update({ status: "falhou" }).eq("id", reserva.id);
+    track({ nome: "reuniao_reserva_falhou", contaId: conta.id, tela: "pagina_publica", descricao: "o Google não criou o evento; nada foi marcado", propriedades: { motivo: e instanceof CalendarError ? e.code : "erro" } });
     if (e instanceof CalendarError) throw new BookingError(e.code === "agenda_indisponivel" ? "agenda_indisponivel" : "servico_indisponivel");
     throw e;
   }
@@ -166,6 +168,10 @@ export async function createBooking(input: BookingInput, now = new Date()): Prom
     manageUrl: manageUrl(token),
   });
 
+  track({
+    nome: "reuniao_reserva_criada", contaId: conta.id, tela: "pagina_publica", descricao: "convidado marcou uma reunião",
+    propriedades: { duracao_min: tipo.duracao_min, com_meet: tipo.com_meet, antecedencia_horas: Math.round((start.getTime() - now.getTime()) / 3_600_000) },
+  });
   return { id: reserva.id, inicio: startIso, fim: end, link_meet: created.meetLink, token };
 }
 
