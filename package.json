@@ -4,20 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3020",
-    "build": "next build",
+    "build": "npm run -s build:mcp-ui && next build",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "npm run -s build:mcp-ui && next typegen && tsc --noEmit",
     "lint": "eslint",
     "test:db": "node scripts/test-db.mjs",
-    "test:unit": "vitest run --passWithNoTests",
+    "test:unit": "npm run -s build:mcp-ui && vitest run --passWithNoTests",
     "test": "npm run test:db && npm run test:unit",
     "verify": "npm run typecheck && npm run lint && npm test && npm run build",
     "seed:calendly": "tsx --env-file=.env.local scripts/seed-calendly.ts",
     "db:types": "node scripts/gen-db-types.mjs",
-    "resend:booking": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/resend-booking-emails.ts"
+    "resend:booking": "tsx --conditions=react-server --env-file=.env.local --tsconfig tsconfig.json scripts/resend-booking-emails.ts",
+    "build:mcp-ui": "node scripts/build-mcp-ui.mjs"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
+    "@modelcontextprotocol/ext-apps": "2.0.4",
+    "@modelcontextprotocol/server": "2.4.0",
     "@supabase/supabase-js": "^2.118.0",
     "date-fns": "^4.4.0",
     "jose": "^6.2.15",

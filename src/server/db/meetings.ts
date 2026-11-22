@@ -86,3 +86,22 @@ export async function getMeeting(contaId: string, id: string): Promise<MeetingDe
     cancelada_em: r.cancelada_em, fuso_convidado: r.fuso_convidado, historico, notificacoes: notes,
   };
 }
+
+// Reuniões confirmadas da conta que começam num intervalo [de, ate) — agenda do dia e da semana
+// do MCP (plano 9.6). Da mais cedo para a mais tarde.
+export async function listMeetingsBetween(contaId: string, fromIso: string, toIso: string): Promise<MeetingRow[]> {
+  const { data, error } = await db()
+    .from("ag_reservas")
+    .select("id, inicio, fim, nome_convidado, email_convidado, status, ag_tipos_evento(nome)")
+    .eq("conta_id", contaId)
+    .eq("status", "confirmada")
+    .gte("inicio", fromIso)
+    .lt("inicio", toIso)
+    .order("inicio", { ascending: true })
+    .limit(200);
+  if (error) throw error;
+  return data.map((r) => ({
+    id: r.id, inicio: r.inicio, fim: r.fim, nome_convidado: r.nome_convidado, email_convidado: r.email_convidado,
+    status: r.status, tipo: r.ag_tipos_evento?.nome ?? "",
+  }));
+}

@@ -1,0 +1,11 @@
+/* Tela de autorização do MCP (plano 9.6): cartão central como /entrar, botões lado a lado. */
+.page { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: var(--surface); }
+.card { width: 100%; max-width: 440px; background: var(--bg); border-radius: var(--radius-card); padding: 32px 28px; display: flex; flex-direction: column; gap: 14px; }
+.brand { margin: 0; color: var(--accent); font-weight: 700; font-size: 15px; }
+.title { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+.text { margin: 0; font-size: 15px; line-height: 1.5; }
+.muted { margin: 0; font-size: 13px; line-height: 1.4; color: var(--text-secondary); }
+.buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+.primary, .secondary { min-height: var(--tap); padding: 0 20px; border-radius: 999px; font-size: 15px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.primary { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--hairline); }

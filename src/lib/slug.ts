@@ -4,7 +4,7 @@
 // Lista reservada para o slug da conta (regra 11.11); a mesma lista está no CHECK do banco.
 export const RESERVED_ACCOUNT_SLUGS = [
   "painel", "entrar", "sair", "api", "r", "_next", "favicon.ico", "robots.txt", "sitemap.xml",
-  "ajuda", "termos", "privacidade",
+  "ajuda", "termos", "privacidade", "mcp", "oauth",
 ] as const;
 
 // Formato aceito (o mesmo do CHECK ag_contas_slug_ck / ag_tipos_evento_slug_ck): 3–30

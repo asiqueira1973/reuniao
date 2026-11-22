@@ -6,7 +6,7 @@
 // Nunca registra e-mail nem token em log (seção 20).
 import { NextResponse, type NextRequest } from "next/server";
 import { dailySignupLimit, isEmailAllowed, isEmailBlocked } from "@/server/auth/allowlist";
-import { OAUTH_STATE_COOKIE, OAUTH_STATE_PATH } from "@/server/auth/oauth-state";
+import { isSafeReturnPath, LOGIN_RETURN_COOKIE, OAUTH_STATE_COOKIE, OAUTH_STATE_PATH } from "@/server/auth/oauth-state";
 import { SESSION_COOKIE, sessionCookieOptions, signSession } from "@/server/auth/session";
 import { accountStatusForGoogle, countAccountsCreatedSince, upsertAccountFromGoogle } from "@/server/db/accounts";
 import { encryptSecret } from "@/server/google/crypto";
@@ -55,7 +55,10 @@ export async function GET(req: NextRequest) {
     track(created
       ? { nome: "reuniao_conta_criada", contaId, tela: "entrar", descricao: "conta nova criada no primeiro login com o Google" }
       : { nome: "reuniao_login", contaId, tela: "entrar", descricao: "dono entrou com o Google" });
-    const res = NextResponse.redirect(new URL("/painel/tipos", req.url), 302);
+    // Plano 9.6: veio da autorização do MCP → volta para ela; senão, painel.
+    const volta = req.cookies.get(LOGIN_RETURN_COOKIE)?.value;
+    const res = NextResponse.redirect(new URL(isSafeReturnPath(volta) ? volta : "/painel/tipos", req.url), 302);
+    res.cookies.delete({ name: LOGIN_RETURN_COOKIE, path: OAUTH_STATE_PATH });
     res.cookies.set(SESSION_COOKIE, await signSession(contaId), sessionCookieOptions());
     res.cookies.delete({ name: OAUTH_STATE_COOKIE, path: OAUTH_STATE_PATH });
     return res;

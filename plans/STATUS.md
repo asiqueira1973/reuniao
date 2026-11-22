@@ -1,6 +1,6 @@
 # Situação atual (atualize no fim de cada sessão)
 
-Última atualização: 05/11/2026 à noite (Mac de casa).
+Última atualização: 22/11/2026 (MCP, plano 9.6).
 
 ## Feito
 - 8.0 a 8.9 implementados, com `npm run verify` código 0 e verifier em cada épico.
@@ -9,6 +9,7 @@
 - 8.9 Faxina diária (`/api/cron/diario` + `vercel.json`), página Privacidade (`/privacidade?de={slug}`, link no rodapé das páginas públicas), `DOCUMENTACAO-TECNICA.md`, README com Resend e Vercel.
 - Teste real ponta a ponta (Gmail + Outlook): marcar, reenviar e-mail com link novo, remarcar, cancelar.
 - **No ar em https://reuniao.app.br** (Vercel, projeto `minha-agenda`, banco remoto compartilhado). Conta `alexandre@dablab.com.br` com o endereço `alexandre` e os 5 tipos do Calendly (gravados por SQL, mesma lógica do seed). Reserva real testada em produção (convidado Outlook): Meet, confirmação e aviso ao dono chegaram.
+- **MCP (22/11/2026, plano 9.6):** `https://reuniao.app.br/mcp` com OAuth próprio, 21 ferramentas (leitura, formulários MCP Apps e gravação) e Conta → Assistentes conectados (desconectar). Privacidade ganhou a seção "Assistentes de IA (MCP)" (a aprovar).
 - Conta da BBZ: quando entrar com `asq@bbz.com.br`, trocar o endereço para `alexandrebbz` (tela Conta).
 
 ## Para o Alexandre decidir/fazer
@@ -18,6 +19,7 @@
 4. Abrir o app para qualquer pessoa (pedido de 05/11): muda o spec (anti-escopo, `EMAILS_PERMITIDOS`) e exige a verificação do Google (aviso "app não verificado" e limite de 100 usuários; projeto Google Cloud próprio em vez do DabLab).
 5. Confirmação ao convidado presa em `pendente` (raro: falha entre o Resend aceitar e o banco gravar) hoje não tem reenvio automático nem botão. Deixar assim ou mostrar o "Reenviar" também para `pendente`?
 6. Registro: no commit aaab5d3 (correção do 8.9) mudei a preparação de um teste novo (`mockReset` → `mockClear` + `mockResolvedValueOnce`), sem tirar nenhuma checagem; o `mockReset` apagava a faxina real dos testes seguintes.
+8. Aprovar os textos `oauth`, `assistants` e a seção de Privacidade "Assistentes de IA (MCP)" (a aprovar, 9.6).
 7. Critério 8.1 "token válido 8 dias depois": conferir em 12/11/2026.
 
 ## Ambientes

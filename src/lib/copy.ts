@@ -334,6 +334,14 @@ export const copy = {
         ],
       },
       {
+        // Plano 9.6 (MCP). A aprovar.
+        title: "Assistentes de IA (MCP)",
+        paragraphs: [
+          "Você pode, se quiser, conectar o Reunião a um assistente de IA (como o Claude ou o ChatGPT) pelo endereço /mcp. A conexão só acontece depois que você entra com a sua conta e clica em Permitir, e pode ser desfeita a qualquer momento em Conta → Assistentes conectados.",
+          "Conectado, o assistente vê e altera, a seu pedido, as suas configurações e reuniões no Reunião. Do seu Google Agenda, ele recebe apenas os horários livres, os mesmos que a sua página pública já mostra. O que você conversa com o assistente fica com o serviço dele e segue a política de privacidade dele.",
+        ],
+      },
+      {
         title: "Com quem compartilhamos",
         paragraphs: [
           "Só com os serviços que fazem o Reunião funcionar: Google (agenda e Meet), Resend (envio de e-mails), Vercel (hospedagem) e Supabase (banco de dados). Alguns ficam fora do Brasil, com garantias contratuais de proteção de dados. Não vendemos dados a ninguém.",
@@ -457,6 +465,32 @@ export const copy = {
     declineConfirm: "Isso apaga a sua conta e desconecta o Google. Continuar?",
     declineButton: "Excluir minha conta",
     cancel: "Cancelar",
+  },
+  oauth: {
+    // Tela de autorização do MCP (plano 9.6). A aprovar.
+    title: (cliente: string) => `Conectar ${cliente} ao seu Reunião?`,
+    can: "Ele vai poder ver seus tipos de reunião, horários e reuniões, e abrir formulários para você criar tipos, mudar horários, marcar e cancelar reuniões.",
+    cannot: "Ele não vê sua senha do Google, não lê outros compromissos da sua agenda e não exclui sua conta. Você desconecta quando quiser, em Conta.",
+    returnTo: (host: string) => `Depois de permitir, você volta para ${host}.`,
+    as: (email: string) => `Entrando como ${email}.`,
+    allow: "Permitir",
+    cancel: "Cancelar",
+    invalidTitle: "Este pedido de conexão não é válido.",
+    invalidText: "Volte ao assistente e comece a conexão de novo.",
+    welcomeFirst: "Antes de conectar um assistente, conclua o primeiro acesso no painel.",
+    goToPanel: "Ir para o painel",
+  },
+  assistants: {
+    // Conta → Assistentes conectados (plano 9.6). A aprovar.
+    title: "Assistentes conectados",
+    intro: "Conecte o Reunião ao Claude, ao ChatGPT ou a outro assistente com MCP usando este endereço:",
+    empty: "Nenhum assistente conectado.",
+    connectedOn: (quando: string) => `Conectado em ${quando}`,
+    lastUse: (quando: string) => `último uso ${quando}`,
+    revoke: "Desconectar",
+    revoked: "Desconectado.",
+    copy: "Copiar endereço",
+    copied: "Endereço copiado.",
   },
   errors: {
     slug_em_uso: "Esse endereço já está em uso.",

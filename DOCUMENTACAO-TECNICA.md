@@ -19,6 +19,9 @@ Todas as tabelas ficam no schema `public` com prefixo `ag_`. O app acessa o banc
 | `ag_excecoes_data` | Exceções por data: dia indisponível ou horário especial (com faixas próprias). |
 | `ag_reservas` | Cada reunião marcada: tipo, início/fim, convidado (nome, e-mail em minúsculas, fuso, observação), situação, evento e Meet do Google, hash do token de gestão, motivo e data de cancelamento, ligação com a reserva de origem quando é remarcação, e a data da anonimização. Nunca são apagadas (só anonimizadas após 24 meses). |
 | `ag_notificacoes` | Cada e-mail que o app precisa mandar: tipo, situação, tentativas (máx. 5), id do Resend e o erro curto. Uma por (reserva, tipo). |
+| `ag_oauth_clientes` | (9.6, MCP) Cada assistente que se registrou pelo `/oauth/registrar`: nome que ele deu e os endereços de volta aceitos (1 a 5). |
+| `ag_oauth_codigos` | (9.6) Códigos de autorização de 10 min: hash do código, cliente, conta, endereço de volta, desafio PKCE, uso e o token emitido. |
+| `ag_mcp_tokens` | (9.6) Cada conexão de um assistente a uma conta: só o hash do token `reuniao_mcp_…`, prefixo, criação, último uso e `revogado_em` (Conta → Assistentes conectados). |
 
 Enums:
 
@@ -56,6 +59,8 @@ Enums:
 | Checks de `ag_tipos_evento` | Duração 15–240 múltipla de 5, antecedência 0–10080 min, janela 1–365 dias, intervalos 0–120, passo em {10,15,20,30,45,60,90,120}. |
 | Checks de `ag_reservas` | E-mail em minúsculas, nome 1–100, observação ≤ 1000, motivo ≤ 500, fim > início. `ag_reservas_token_hash_key` torna o hash único. |
 | Checks de `ag_notificacoes` | Tentativas 0–5; `reserva_id` nulo só em `reconectar_google`. |
+| `ag_fn_cria_codigo_oauth(…)` | (9.6) Grava o código de autorização (hash) com validade. Conta suspensa não recebe código. |
+| `ag_fn_troca_codigo_oauth(…)` | (9.6) Troca o código por token numa transação: confere cliente, endereço de volta, PKCE e validade. Código já usado → revoga o token emitido com ele (proteção contra roubo do código). |
 
 ## 4. Mapa tela → rotas → tabelas
 
@@ -74,6 +79,9 @@ Enums:
 | `/` (página inicial, v0.5) | — (com sessão, o proxy manda para `/painel/tipos`) | — |
 | `/privacidade` (`?de={slug}` opcional) | — | `ag_contas` (nome e e-mail de contato do dono, só com `?de=`) |
 | `/termos` | — | — |
+| `/painel/conta` → Assistentes conectados (9.6) | `DELETE /api/painel/conta/assistentes/[id]` | `ag_mcp_tokens` |
+| `/oauth/autorizar` (consentimento do MCP) | `POST /oauth/autorizar/decidir`, `POST /oauth/registrar`, `POST /oauth/token`, `GET /.well-known/oauth-authorization-server`, `GET /.well-known/oauth-protected-resource[/mcp]` | `ag_oauth_clientes`, `ag_oauth_codigos`, `ag_mcp_tokens` |
+| (assistente de IA) | `POST /mcp` (Bearer `reuniao_mcp_…`) | todas as do painel, pelas mesmas funções do servidor |
 | (cron) | `GET /api/cron/diario` (Bearer `CRON_SECRET`) | `ag_reservas`, `ag_notificacoes`; lê `ag_contas` e `ag_conexoes_google` (+ Google delete/patch, Resend) |
 
 O `src/proxy.ts` protege `/painel/*` (sessão no cookie `ag_sessao`, renovada após 7 dias) e devolve 404 real para `/{slug}` e `/{slug}/{tipo}` inexistentes.
@@ -96,6 +104,8 @@ O `src/proxy.ts` protege `/painel/*` (sessão no cookie `ag_sessao`, renovada ap
 
 **Faxina diária (8.9).** `src/server/cron.ts`, 09:00 UTC: (1) `processando` há mais de 10 min → `falhou`, apagando o evento que possa ter sido criado (remarcação presa só vai para o log `remarcacao_presa`); (2) reenvia `falhou` e `pendente` antigos com < 5 tentativas de reuniões que não terminaram, com as mesmas regras do botão Reenviar (confirmação `pendente` nunca: o e-mail pode ter saído e o reenvio troca o token; uma tentativa por e-mail por rodada); (3) anonimiza reservas com fim há mais de 24 meses. O que já saiu nunca é reenviado. Nos testes, a faxina roda só nas contas de teste (`contaIds`).
 
+**MCP (9.6).** `https://reuniao.app.br/mcp`, Streamable HTTP sem estado (`@modelcontextprotocol/server` 2.4 + `ext-apps` 2.0). O assistente descobre o OAuth pelos metadados, registra-se sozinho, manda a pessoa a `/oauth/autorizar` (sem sessão → `/entrar?volta=…` → volta), recebe o código e troca por token com PKCE S256. O token vale até ser revogado; conta suspensa ou token revogado → 401. Cada requisição monta um `McpServer` com a conta do token (nenhuma ferramenta recebe conta por argumento). 21 ferramentas: 8 de leitura, 6 `abrir_formulario_*` (MCP Apps: um único HTML genérico `ui://reuniao/formulario-<hash>.html`, gerado por `scripts/build-mcp-ui.mjs`, que desenha os campos do `structuredContent` e grava chamando a ferramenta de salvar) e 7 de escrita (`salvar_*`, `marcar_reuniao`, `cancelar_reuniao`, `reenviar_email`), que validam com os mesmos schemas e gravam pelas mesmas funções do painel e devolvem erros por campo. Do Google, só horários livres. Eventos `reuniao_mcp_conectado` e `reuniao_mcp_ferramenta`.
+
 **Logs.** Só códigos curtos e ids (`evento_sem_meet`, `reverter_cancelamento_falhou`, `revogacao_falhou`, `faxina_falhou`…). Nunca e-mail, nome, observação, token ou URL `/r/…` (seção 20).
 
 ## 6. Divergências em relação ao spec
@@ -115,4 +125,5 @@ Detalhe em `plans/8.*.md`, seção "Divergências". Resumo:
 - Anonimização: nome, e-mail e observação também ficam na descrição do evento no Google Agenda do dono, que o app não anonimiza (o texto de Privacidade avisa).
 - Página de privacidade em `/privacidade?de={slug}` (o spec não fixa a URL).
 - `DELETE /api/painel/conta` devolve `{ ok: true }`.
+- MCP (9.6) não está no spec; desenho e regras em `plans/9.6-mcp.md`. Textos `oauth` e `assistants` do `copy.ts` "a aprovar".
 - Textos fora da seção 15 marcados "a aprovar (8.6/8.7/8.8/8.9)" em `src/lib/copy.ts`.

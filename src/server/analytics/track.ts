@@ -19,7 +19,9 @@ export type EventName =
   | "reuniao_reserva_cancelada"
   | "reuniao_reserva_remarcada"
   | "reuniao_conexao_revogada"
-  | "reuniao_conta_excluida";
+  | "reuniao_conta_excluida"
+  | "reuniao_mcp_conectado"
+  | "reuniao_mcp_ferramenta";
 
 export type ProductEvent = {
   nome: EventName;

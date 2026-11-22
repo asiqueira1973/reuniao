@@ -77,6 +77,29 @@ CREATE TYPE "public"."ag_tipo_notificacao" AS ENUM (
 ALTER TYPE "public"."ag_tipo_notificacao" OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."ag_fn_cria_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_conta_id" "uuid", "p_redirect_uri" "text", "p_code_challenge" "text", "p_validade_s" integer) RETURNS "void"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $_$
+declare
+  v_uris text[];
+begin
+  select redirect_uris into v_uris from public.ag_oauth_clientes where id = p_cliente_id;
+  if v_uris is null then
+    raise exception 'invalid_client';
+  end if;
+  if not (p_redirect_uri = any (v_uris)) or p_code_challenge !~ '^[A-Za-z0-9_-]{43}$' then
+    raise exception 'invalid_request';
+  end if;
+  insert into public.ag_oauth_codigos (codigo_hash, cliente_id, conta_id, redirect_uri, code_challenge, expira_em)
+  values (p_codigo_hash, p_cliente_id, p_conta_id, p_redirect_uri, p_code_challenge, now() + make_interval(secs => p_validade_s));
+end;
+$_$;
+
+
+ALTER FUNCTION "public"."ag_fn_cria_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_conta_id" "uuid", "p_redirect_uri" "text", "p_code_challenge" "text", "p_validade_s" integer) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."ag_fn_desfaz_remarcacao"("p_nova_id" "uuid") RETURNS "text"
     LANGUAGE "plpgsql"
     SET "search_path" TO ''
@@ -183,6 +206,45 @@ $$;
 ALTER FUNCTION "public"."ag_fn_substitui_horarios"("p_conta_id" "uuid", "p_faixas" "jsonb") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."ag_fn_troca_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_redirect_uri" "text", "p_challenge_do_verifier" "text", "p_token_hash" "text", "p_token_prefixo" "text") RETURNS "uuid"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+declare
+  v_c public.ag_oauth_codigos;
+  v_nome text;
+  v_token uuid;
+begin
+  select * into v_c from public.ag_oauth_codigos where codigo_hash = p_codigo_hash for update;
+  if v_c.codigo_hash is null then
+    return null;
+  end if;
+  if v_c.usado_em is not null then
+    update public.ag_mcp_tokens set revogado_em = now() where id = v_c.token_id and revogado_em is null;
+    return null;
+  end if;
+  if v_c.expira_em <= now()
+     or v_c.cliente_id <> p_cliente_id
+     or v_c.redirect_uri is distinct from p_redirect_uri
+     or v_c.code_challenge is distinct from p_challenge_do_verifier then
+    return null;
+  end if;
+  if exists (select 1 from public.ag_contas where id = v_c.conta_id and suspensa_em is not null) then
+    return null;
+  end if;
+  select nome into v_nome from public.ag_oauth_clientes where id = p_cliente_id;
+  insert into public.ag_mcp_tokens (conta_id, cliente_id, nome, token_hash, prefixo)
+  values (v_c.conta_id, p_cliente_id, coalesce(v_nome, 'Assistente'), p_token_hash, p_token_prefixo)
+  returning id into v_token;
+  update public.ag_oauth_codigos set usado_em = now(), token_id = v_token where codigo_hash = p_codigo_hash;
+  return v_c.conta_id;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."ag_fn_troca_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_redirect_uri" "text", "p_challenge_do_verifier" "text", "p_token_hash" "text", "p_token_prefixo" "text") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."ag_fn_valida_faixas"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO ''
@@ -280,7 +342,7 @@ CREATE TABLE IF NOT EXISTS "public"."ag_contas" (
     CONSTRAINT "ag_contas_mensagem_ck" CHECK ((("mensagem_boas_vindas" IS NULL) OR ("char_length"("mensagem_boas_vindas") <= 300))),
     CONSTRAINT "ag_contas_nome_ck" CHECK ((("char_length"("nome_exibicao") >= 1) AND ("char_length"("nome_exibicao") <= 100))),
     CONSTRAINT "ag_contas_slug_ck" CHECK (("slug" ~ '^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])$'::"text")),
-    CONSTRAINT "ag_contas_slug_reservado_ck" CHECK (("slug" <> ALL (ARRAY['painel'::"text", 'entrar'::"text", 'sair'::"text", 'api'::"text", 'r'::"text", '_next'::"text", 'favicon.ico'::"text", 'robots.txt'::"text", 'sitemap.xml'::"text", 'ajuda'::"text", 'termos'::"text", 'privacidade'::"text"])))
+    CONSTRAINT "ag_contas_slug_reservado_ck" CHECK (("slug" <> ALL (ARRAY['painel'::"text", 'entrar'::"text", 'sair'::"text", 'api'::"text", 'r'::"text", '_next'::"text", 'favicon.ico'::"text", 'robots.txt'::"text", 'sitemap.xml'::"text", 'ajuda'::"text", 'termos'::"text", 'privacidade'::"text", 'mcp'::"text", 'oauth'::"text"])))
 );
 
 
@@ -324,6 +386,22 @@ CREATE TABLE IF NOT EXISTS "public"."ag_horarios_semanais" (
 ALTER TABLE "public"."ag_horarios_semanais" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."ag_mcp_tokens" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "conta_id" "uuid" NOT NULL,
+    "cliente_id" "uuid",
+    "nome" "text" NOT NULL,
+    "token_hash" "text" NOT NULL,
+    "prefixo" "text" NOT NULL,
+    "criado_em" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "ultimo_uso_em" timestamp with time zone,
+    "revogado_em" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."ag_mcp_tokens" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."ag_notificacoes" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "conta_id" "uuid" NOT NULL,
@@ -341,6 +419,36 @@ CREATE TABLE IF NOT EXISTS "public"."ag_notificacoes" (
 
 
 ALTER TABLE "public"."ag_notificacoes" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."ag_oauth_clientes" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "nome" "text" NOT NULL,
+    "redirect_uris" "text"[] NOT NULL,
+    "criado_em" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "ag_oauth_clientes_nome_check" CHECK ((("char_length"("nome") >= 1) AND ("char_length"("nome") <= 100))),
+    CONSTRAINT "ag_oauth_clientes_redirect_uris_check" CHECK ((("cardinality"("redirect_uris") >= 1) AND ("cardinality"("redirect_uris") <= 5)))
+);
+
+
+ALTER TABLE "public"."ag_oauth_clientes" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."ag_oauth_codigos" (
+    "codigo_hash" "text" NOT NULL,
+    "cliente_id" "uuid" NOT NULL,
+    "conta_id" "uuid" NOT NULL,
+    "redirect_uri" "text" NOT NULL,
+    "code_challenge" "text" NOT NULL,
+    "expira_em" timestamp with time zone NOT NULL,
+    "usado_em" timestamp with time zone,
+    "token_id" "uuid",
+    "criado_em" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "ag_oauth_codigos_code_challenge_check" CHECK (("code_challenge" ~ '^[A-Za-z0-9_-]{43}$'::"text"))
+);
+
+
+ALTER TABLE "public"."ag_oauth_codigos" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."ag_reservas" (
@@ -437,8 +545,28 @@ ALTER TABLE ONLY "public"."ag_horarios_semanais"
 
 
 
+ALTER TABLE ONLY "public"."ag_mcp_tokens"
+    ADD CONSTRAINT "ag_mcp_tokens_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."ag_mcp_tokens"
+    ADD CONSTRAINT "ag_mcp_tokens_token_hash_key" UNIQUE ("token_hash");
+
+
+
 ALTER TABLE ONLY "public"."ag_notificacoes"
     ADD CONSTRAINT "ag_notificacoes_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."ag_oauth_clientes"
+    ADD CONSTRAINT "ag_oauth_clientes_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."ag_oauth_codigos"
+    ADD CONSTRAINT "ag_oauth_codigos_pkey" PRIMARY KEY ("codigo_hash");
 
 
 
@@ -470,6 +598,14 @@ CREATE INDEX "ag_horarios_semanais_conta_idx" ON "public"."ag_horarios_semanais"
 
 
 
+CREATE INDEX "ag_mcp_tokens_cliente_idx" ON "public"."ag_mcp_tokens" USING "btree" ("cliente_id");
+
+
+
+CREATE INDEX "ag_mcp_tokens_conta_idx" ON "public"."ag_mcp_tokens" USING "btree" ("conta_id");
+
+
+
 CREATE INDEX "ag_notificacoes_conta_idx" ON "public"."ag_notificacoes" USING "btree" ("conta_id");
 
 
@@ -479,6 +615,18 @@ CREATE INDEX "ag_notificacoes_pendentes_idx" ON "public"."ag_notificacoes" USING
 
 
 CREATE UNIQUE INDEX "ag_notificacoes_uk" ON "public"."ag_notificacoes" USING "btree" ("reserva_id", "tipo");
+
+
+
+CREATE INDEX "ag_oauth_codigos_cliente_idx" ON "public"."ag_oauth_codigos" USING "btree" ("cliente_id");
+
+
+
+CREATE INDEX "ag_oauth_codigos_conta_idx" ON "public"."ag_oauth_codigos" USING "btree" ("conta_id");
+
+
+
+CREATE INDEX "ag_oauth_codigos_token_idx" ON "public"."ag_oauth_codigos" USING "btree" ("token_id");
 
 
 
@@ -541,6 +689,16 @@ ALTER TABLE ONLY "public"."ag_horarios_semanais"
 
 
 
+ALTER TABLE ONLY "public"."ag_mcp_tokens"
+    ADD CONSTRAINT "ag_mcp_tokens_cliente_id_fkey" FOREIGN KEY ("cliente_id") REFERENCES "public"."ag_oauth_clientes"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."ag_mcp_tokens"
+    ADD CONSTRAINT "ag_mcp_tokens_conta_id_fkey" FOREIGN KEY ("conta_id") REFERENCES "public"."ag_contas"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."ag_notificacoes"
     ADD CONSTRAINT "ag_notificacoes_conta_id_fkey" FOREIGN KEY ("conta_id") REFERENCES "public"."ag_contas"("id") ON DELETE CASCADE;
 
@@ -548,6 +706,21 @@ ALTER TABLE ONLY "public"."ag_notificacoes"
 
 ALTER TABLE ONLY "public"."ag_notificacoes"
     ADD CONSTRAINT "ag_notificacoes_reserva_id_fkey" FOREIGN KEY ("reserva_id") REFERENCES "public"."ag_reservas"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."ag_oauth_codigos"
+    ADD CONSTRAINT "ag_oauth_codigos_cliente_id_fkey" FOREIGN KEY ("cliente_id") REFERENCES "public"."ag_oauth_clientes"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."ag_oauth_codigos"
+    ADD CONSTRAINT "ag_oauth_codigos_conta_id_fkey" FOREIGN KEY ("conta_id") REFERENCES "public"."ag_contas"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."ag_oauth_codigos"
+    ADD CONSTRAINT "ag_oauth_codigos_token_id_fkey" FOREIGN KEY ("token_id") REFERENCES "public"."ag_mcp_tokens"("id") ON DELETE SET NULL;
 
 
 
@@ -583,7 +756,16 @@ ALTER TABLE "public"."ag_excecoes_data" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."ag_horarios_semanais" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."ag_mcp_tokens" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."ag_notificacoes" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."ag_oauth_clientes" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."ag_oauth_codigos" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."ag_reservas" ENABLE ROW LEVEL SECURITY;
@@ -596,6 +778,11 @@ GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."ag_fn_cria_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_conta_id" "uuid", "p_redirect_uri" "text", "p_code_challenge" "text", "p_validade_s" integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."ag_fn_cria_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_conta_id" "uuid", "p_redirect_uri" "text", "p_code_challenge" "text", "p_validade_s" integer) TO "service_role";
 
 
 
@@ -616,6 +803,11 @@ GRANT ALL ON FUNCTION "public"."ag_fn_substitui_excecoes_data"("p_conta_id" "uui
 
 REVOKE ALL ON FUNCTION "public"."ag_fn_substitui_horarios"("p_conta_id" "uuid", "p_faixas" "jsonb") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."ag_fn_substitui_horarios"("p_conta_id" "uuid", "p_faixas" "jsonb") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."ag_fn_troca_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_redirect_uri" "text", "p_challenge_do_verifier" "text", "p_token_hash" "text", "p_token_prefixo" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."ag_fn_troca_codigo_oauth"("p_codigo_hash" "text", "p_cliente_id" "uuid", "p_redirect_uri" "text", "p_challenge_do_verifier" "text", "p_token_hash" "text", "p_token_prefixo" "text") TO "service_role";
 
 
 
@@ -645,7 +837,19 @@ GRANT ALL ON TABLE "public"."ag_horarios_semanais" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."ag_mcp_tokens" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."ag_notificacoes" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."ag_oauth_clientes" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."ag_oauth_codigos" TO "service_role";
 
 
 

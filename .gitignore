@@ -57,3 +57,6 @@ google-services.json
 key.properties
 local.properties
 secrets/
+
+# Formulário do MCP, gerado por scripts/build-mcp-ui.mjs (plano 9.6)
+src/server/mcp/ui-html.generated.ts

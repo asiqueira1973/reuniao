@@ -32,6 +32,8 @@ export async function proxy(request: NextRequest) {
     return session ? NextResponse.redirect(new URL("/painel/tipos", request.url)) : NextResponse.next();
   }
 
+  // MCP e OAuth (plano 9.6) são rotas do app, não endereços de agenda.
+  if (path === "/mcp" || path.startsWith("/oauth/")) return NextResponse.next();
   const match = PUBLIC_PATH.exec(path);
   if (!match || (RESERVED_ACCOUNT_SLUGS as readonly string[]).includes(match[1])) return NextResponse.next();
   if (await publicPathExists(match[1], match[2])) return NextResponse.next();

@@ -82,6 +82,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ag_mcp_tokens": {
+                  Row: {
+                    "cliente_id": string | null,"conta_id": string,"criado_em": string,"id": string,"nome": string,"prefixo": string,"revogado_em": string | null,"token_hash": string,"ultimo_uso_em": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cliente_id"?: string | null,"conta_id": string,"criado_em"?: string,"id"?: string,"nome": string,"prefixo": string,"revogado_em"?: string | null,"token_hash": string,"ultimo_uso_em"?: string | null
+                  }
+                  Update: {
+                    "cliente_id"?: string | null,"conta_id"?: string,"criado_em"?: string,"id"?: string,"nome"?: string,"prefixo"?: string,"revogado_em"?: string | null,"token_hash"?: string,"ultimo_uso_em"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ag_mcp_tokens_cliente_id_fkey"
+      columns: ["cliente_id"]
+isOneToOne: false
+      referencedRelation: "ag_oauth_clientes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ag_mcp_tokens_conta_id_fkey"
+      columns: ["conta_id"]
+isOneToOne: false
+      referencedRelation: "ag_contas"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ag_notificacoes": {
                   Row: {
                     "conta_id": string,"criado_em": string,"enviada_em": string | null,"erro": string | null,"id": string,"resend_id": string | null,"reserva_id": string | null,"status": Database["public"]['Enums']["ag_status_notificacao"],"tentativas": number,"tipo": Database["public"]['Enums']["ag_tipo_notificacao"]
@@ -105,6 +131,52 @@ isOneToOne: false
       columns: ["reserva_id"]
 isOneToOne: false
       referencedRelation: "ag_reservas"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"ag_oauth_clientes": {
+                  Row: {
+                    "criado_em": string,"id": string,"nome": string,"redirect_uris": (string)[]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "criado_em"?: string,"id"?: string,"nome": string,"redirect_uris": (string)[]
+                  }
+                  Update: {
+                    "criado_em"?: string,"id"?: string,"nome"?: string,"redirect_uris"?: (string)[]
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"ag_oauth_codigos": {
+                  Row: {
+                    "cliente_id": string,"code_challenge": string,"codigo_hash": string,"conta_id": string,"criado_em": string,"expira_em": string,"redirect_uri": string,"token_id": string | null,"usado_em": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cliente_id": string,"code_challenge": string,"codigo_hash": string,"conta_id": string,"criado_em"?: string,"expira_em": string,"redirect_uri": string,"token_id"?: string | null,"usado_em"?: string | null
+                  }
+                  Update: {
+                    "cliente_id"?: string,"code_challenge"?: string,"codigo_hash"?: string,"conta_id"?: string,"criado_em"?: string,"expira_em"?: string,"redirect_uri"?: string,"token_id"?: string | null,"usado_em"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ag_oauth_codigos_cliente_id_fkey"
+      columns: ["cliente_id"]
+isOneToOne: false
+      referencedRelation: "ag_oauth_clientes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ag_oauth_codigos_conta_id_fkey"
+      columns: ["conta_id"]
+isOneToOne: false
+      referencedRelation: "ag_contas"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ag_oauth_codigos_token_id_fkey"
+      columns: ["token_id"]
+isOneToOne: false
+      referencedRelation: "ag_mcp_tokens"
       referencedColumns: ["id"]
     }
                   ]
@@ -166,7 +238,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "ag_fn_desfaz_remarcacao":
+            "ag_fn_cria_codigo_oauth":
+{ Args: { "p_cliente_id": string,"p_code_challenge": string,"p_codigo_hash": string,"p_conta_id": string,"p_redirect_uri": string,"p_validade_s": number }; Returns: undefined
+                           },
+"ag_fn_desfaz_remarcacao":
 { Args: { "p_nova_id": string }; Returns: string
                            },
 "ag_fn_remarcar_reservar":
@@ -177,6 +252,9 @@ isOneToOne: false
                            },
 "ag_fn_substitui_horarios":
 { Args: { "p_conta_id": string,"p_faixas": Json }; Returns: undefined
+                           },
+"ag_fn_troca_codigo_oauth":
+{ Args: { "p_challenge_do_verifier": string,"p_cliente_id": string,"p_codigo_hash": string,"p_redirect_uri": string,"p_token_hash": string,"p_token_prefixo": string }; Returns: string
                            }
           }
           Enums: {

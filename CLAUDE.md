@@ -40,4 +40,5 @@ Saída saudável do verify: termina com a tabela de rotas do `next build`, códi
 - Produção: domínio principal `reuniao.app.br` e `www` → 308 para ele; ao contrário, o Origin não bate com `NEXT_PUBLIC_SITE_URL` e o painel dá `origem_invalida`.
 - Next 16 guarda páginas visitadas com o estado: componente de cliente que copia prop do servidor para `useState` precisa refazer o estado quando a prop muda (B-01). Bug de cache só aparece no `next build && next start`, não no `next dev`.
 - `copy.ts`: `  errors: {` aparece também dentro de `login`; ao inserir bloco por script, ancore num texto único (ex.: `errors: {\n    slug_em_uso`).
+- MCP (`/mcp`, plano 9.6): o HTML do formulário é gerado (`npm run build:mcp-ui` → `src/server/mcp/ui-html.generated.ts`, fora do git; `build`, `typecheck` e `test:unit` já rodam). Ferramenta nova: registrar por `tool()`/`formTool()` de `src/server/mcp/shared.ts` (anotações obrigatórias) e gravar pelas mesmas funções do painel; conta sempre do token, nunca de argumento.
 - Quando o agente errar a mesma coisa duas vezes, a correção entra aqui.
