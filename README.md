@@ -11,6 +11,8 @@
 
 O **Reunião** é um agendador de reuniões grátis e em português, uma versão enxuta do Calendly. Você entra com o Google, diz em que dias e horários atende e ganha um endereço próprio, como `reuniao.app.br/seunome`. Quem recebe o link escolhe um horário livre, e a reunião entra no seu Google Agenda com o link do Google Meet. O convidado não precisa criar conta e pode remarcar ou cancelar pelo link do e-mail.
 
+E tem **servidor MCP**: conecte o Reunião ao Claude, ao ChatGPT ou a outro assistente de IA em `https://reuniao.app.br/mcp` e peça, na conversa, para ver a agenda, marcar ou cancelar reuniões e mudar os horários, com formulários para conferir antes de gravar ([veja abaixo](#use-pelo-seu-assistente-de-ia-mcp)).
+
 É um produto da [DabLab](https://dablab.com.br).
 
 ## Como funciona
@@ -57,6 +59,26 @@ O painel mostra as próximas reuniões, as que já passaram e as canceladas. No 
 
 ![Detalhe de uma reunião com Rafael Souza: tipo, horário, convidado, link do Meet, observação e os e-mails enviados](docs/images/detalhe.png)
 
+## Use pelo seu assistente de IA (MCP)
+
+<p align="center">
+  <img src="docs/images/mcp.png" alt="Dois exemplos numa conversa com um assistente de IA. À esquerda, o pedido 'Marca uma reunião de 1h com a Ana Lima na terça à tarde' abre o formulário Marcar reunião com os horários livres de terça (14:30, 15:30 selecionado, 16:30), nome e e-mail da convidada e o botão Marcar reunião; embaixo, a confirmação. À direita, 'Quero atender de manhã também nas quartas' abre o formulário Horários da semana com as faixas de cada dia e o botão Salvar horários.">
+</p>
+
+O Reunião tem um servidor **MCP** (Model Context Protocol) em **`https://reuniao.app.br/mcp`**. Conectado, o assistente consulta a sua agenda e faz por você o que o painel faz. Tudo o que grava passa por um **formulário** dentro da conversa (MCP Apps): o assistente preenche o que entendeu do pedido, você confere, ajusta e clica no botão. Se você fechar sem salvar, nada é gravado. Em assistentes sem formulários, as ferramentas de gravar pedem a sua confirmação antes de rodar.
+
+**Como conectar.** No Claude: *Configurações → Conectores → Adicionar conector personalizado*, nome `Reunião`, URL `https://reuniao.app.br/mcp`. No ChatGPT: *Configurações → Aplicativos e conectores → Criar*, com a mesma URL e autenticação OAuth. O assistente abre a página do Reunião: você entra com o Google e clica em **Permitir**. Não há chave para copiar. A conexão aparece em **Conta → Assistentes conectados**, de onde você a desfaz quando quiser.
+
+| Para | Ferramentas |
+|---|---|
+| Consultar | `ver_conta`, `listar_tipos_de_reuniao`, `ver_disponibilidade`, `horarios_livres`, `listar_reunioes`, `agenda_do_dia`, `agenda_da_semana`, `ver_reuniao` |
+| Abrir formulário | `abrir_formulario_tipo_de_reuniao`, `abrir_formulario_horarios_da_semana`, `abrir_formulario_data_especial`, `abrir_formulario_marcar_reuniao`, `abrir_formulario_cancelar_reuniao`, `abrir_formulario_conta` |
+| Gravar (chamadas pelo botão do formulário) | `salvar_tipo_de_reuniao`, `salvar_horarios_da_semana`, `salvar_data_especial`, `marcar_reuniao`, `cancelar_reuniao`, `salvar_conta`, `reenviar_email` |
+
+Alguns pedidos que funcionam: *"o que eu tenho amanhã?"*, *"cria uma mentoria de 45 minutos com Meet"*, *"bloqueia o dia 25 de dezembro"*, *"me passa os horários livres da semana que vem para a reunião de 1h"*, *"cancela a reunião com o Rafael e diz que surgiu um imprevisto"*.
+
+O assistente só enxerga a sua conta. Do seu Google Agenda, ele recebe apenas os horários livres, os mesmos que a sua página pública já mostra. As gravações passam pelas mesmas validações e regras do painel.
+
 Os nomes e e-mails das figuras são fictícios.
 
 ## Arquitetura
@@ -91,6 +113,7 @@ Para rodar a sua própria instância, o Reunião cabe nos planos gratuitos do Su
 - Supabase (Postgres; RLS sem políticas, acesso só pelo servidor; regras de reserva e sobreposição no banco)
 - Google OAuth (login) e Google Calendar API (livre/ocupado e eventos com Meet), com o token de acesso cifrado no banco
 - Resend (e-mails), Vercel (hospedagem e cron diário)
+- Servidor MCP (`@modelcontextprotocol/server` e `ext-apps` para os formulários) com OAuth 2.1 próprio: registro dinâmico de cliente, PKCE S256 e token revogável guardado só como hash
 - Zod, date-fns, jose
 - Vitest e pgTAP para testes
 
@@ -203,6 +226,13 @@ curl -s -H "Authorization: Bearer $CRON_SECRET" https://reuniao.app.br/api/cron/
 
 - **Suspender uma conta por abuso** (SQL no Supabase): `update ag_contas set suspensa_em = now() where slug = 'fulano';`. A página dela some (404), a sessão deixa de valer e o login é recusado. Para reativar: `set suspensa_em = null`.
 - **Limite de reservas por IP** (Vercel → Firewall → **Add Rule**): `Request Path` igual a `/api/reservas` e `Method` igual a `POST`, ação **Rate Limit**, 10 requisições por 60 s por IP, resposta 429.
+
+## Servidor MCP
+
+- Rota `src/app/mcp/route.ts` (Streamable HTTP sem estado); ferramentas em `src/server/mcp/`; OAuth em `src/server/oauth/` e `src/app/oauth/`, com os metadados em `/.well-known/oauth-authorization-server` e `/.well-known/oauth-protected-resource/mcp`.
+- O formulário é um único HTML gerado de `src/mcp-ui/` por `npm run build:mcp-ui` (o `build`, o `typecheck` e os testes já rodam). O arquivo gerado fica fora do git.
+- Testar localmente: `npx @modelcontextprotocol/inspector` apontando para `http://localhost:3020/mcp`, ou um túnel HTTPS para conectar o Claude ao app local.
+- Nenhuma variável nova: o endereço sai de `NEXT_PUBLIC_SITE_URL`. Detalhes em `plans/9.6-mcp.md`.
 
 ## Eventos de uso na Visão de Produto
 
